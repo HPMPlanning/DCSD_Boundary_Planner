@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boundary Planner</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+  <style>
+    :root { --ink: #16202b; --muted: #5d6875; --line: #d6dbe1; --accent: #1f3fb5; --accent-soft: #f2f5fc; --over: #c8102e; --ok: #0a7d3b; --warn-bg: #fff8e5; --warn: #e0a100; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: #fff; }
+    button { font: inherit; color: inherit; }
+    .serif { font-family: Georgia, "Times New Roman", serif; }
+    #app { display: flex; height: 100%; }
+    #mapCol { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+    #mapHead { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: #fff; }
+    #mapHead h1 { flex: 1; margin: 0; font-size: 20px; line-height: 1.25; }
+    .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 2px; cursor: pointer; font-size: 14px; }
+    .btn:hover:not(:disabled) { border-color: #9aa4b0; }
+    .btn:disabled { color: #a3abb5; cursor: default; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover:not(:disabled) { background: #18328f; }
+    .btn.primary:disabled { background: #fff; border-color: var(--line); color: #a3abb5; }
+    #legend { position: absolute; right: 20px; top: calc(100% + 6px); z-index: 20; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); padding: 10px 14px; min-width: 200px; font-size: 13px; }
+    #legend[hidden] { display: none; }
+    #legend div { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+    #mapWrap { position: relative; flex: 1 1 auto; min-height: 320px; }
+    #viewDiv { position: absolute; inset: 0; visibility: hidden; } /* shown once fitted to the zones */
+    .esri-view .esri-view-surface--inset-outline:focus::after { outline: none !important; }
+    #chip { position: absolute; left: 16px; bottom: 28px; z-index: 5; background: #fff; border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    #chip:empty { display: none; }
+    #panel { flex: 0 0 380px; display: flex; flex-direction: column; border-left: 1px solid var(--line); border-top: 6px solid var(--accent); min-height: 0; }
+    #panelBody { flex: 1 1 auto; overflow-y: auto; padding: 18px 22px 20px; }
+    #panelFoot { padding: 14px 22px 16px; border-top: 1px solid var(--line); background: #fff; }
+    #panelFoot .btn { width: 100%; padding: 13px; font-size: 16px; }
+    p.intro { font-size: 14px; color: var(--muted); margin: 0 0 18px; line-height: 1.5; }
+    .tabs { display: flex; margin-bottom: 20px; }
+    .tabs button { flex: 1; padding: 11px 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; font-size: 15px; }
+    .tabs button + button { border-left: 0; }
+    .tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .sechead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+    .sechead h2 { font-size: 16px; margin: 0; }
+    .sechead span { font-size: 12px; color: var(--muted); }
+    .school { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 2px; padding: 11px 13px; margin-bottom: 8px; cursor: pointer; }
+    .school:hover { border-color: #9aa4b0; }
+    .school.selected { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+    .school .top { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+    .school .name { font-weight: 700; flex: 1; }
+    .school.unassign .name { font-weight: 400; font-size: 15px; }
+    .school .cap { font-size: 12px; color: var(--muted); }
+    .swatch { width: 12px; height: 12px; flex: 0 0 12px; border-radius: 2px; }
+    .swatch.none { background: repeating-linear-gradient(45deg, #9aa1a9 0 2px, #fff 2px 4px); border: 1px solid #9aa1a9; }
+    .meter { margin-top: 8px; }
+    .meter .mtop { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+    .meter .nums { color: var(--ink); }
+    .bar { position: relative; height: 4px; background: #e8ecf0; margin-top: 6px; }
+    .bar span { position: absolute; left: 0; top: 0; bottom: 0; }
+    .bar i { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--ink); opacity: .45; }
+    .pct { font-weight: 700; margin-left: 6px; }
+    .st-over .pct { color: var(--over); }
+    .st-ok .pct { color: var(--ok); }
+    .callout { margin: 8px 0 16px; padding: 10px 14px; border-left: 4px solid var(--warn); background: var(--warn-bg); font-size: 13px; color: var(--muted); }
+    .callout strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 2px; }
+    .callout.done { border-left-color: var(--ok); background: #eef8f2; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    #warnings { font-size: 13px; color: var(--over); margin-bottom: 10px; line-height: 1.45; }
+    #warnings:empty { display: none; }
+    #warnings ul { margin: 6px 0 0; padding-left: 18px; }
+    #dlNote { font-size: 12px; color: var(--muted); margin: 10px 0 0; line-height: 1.45; }
+    #dlNote a, #dlNote button.link { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; text-decoration: underline; cursor: pointer; }
+    #csvText { width: 100%; min-height: 120px; font-family: Consolas, monospace; font-size: 11px; margin-top: 6px; }
+    /* pop-ups */
+    .dlg { position: fixed; inset: 0; background: rgba(15, 23, 32, .45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+    .dlg[hidden] { display: none; }
+    .dlg .box { background: #fff; border-top: 6px solid var(--accent); padding: 20px 22px; max-width: 420px; width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+    .dlg .box.wide { max-width: 560px; }
+    .dlg h2 { font-size: 22px; margin: 0 0 12px; }
+    .dlg h3 { font-size: 14px; margin: 14px 0 6px; }
+    .dlg p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
+    .dlg .actions { justify-content: flex-end; margin-top: 16px; }
+    .dlg .box.wide { display: flex; flex-direction: column; padding: 0; }
+    #reviewForm { display: flex; flex-direction: column; min-height: 0; }
+    #reviewForm[hidden], #thanks[hidden] { display: none; }
+    .dlg .scroll { overflow-y: auto; padding: 20px 22px 6px; }
+    .dlg .foot { border-top: 1px solid var(--line); padding: 12px 22px; }
+    .dlg .foot .actions { margin-top: 0; }
+    .dlg .foot #msg { margin: 0 0 10px; }
+    .plan { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 4px; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+    .srow { display: grid; grid-template-columns: 1fr auto; align-items: baseline; font-size: 13px; padding: 5px 0 6px; }
+    .srow .v { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .srow .v b { color: var(--ok); margin-left: 4px; }
+    .srow.over .v b { color: var(--over); }
+    .srow .bar { grid-column: 1 / -1; margin-top: 4px; }
+    .feeders { font-size: 13px; }
+    .feed { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 6px 0; border-bottom: 1px solid #eef0f3; }
+    .feed .n { font-weight: 600; white-space: nowrap; }
+    .feed .parts { text-align: right; color: var(--muted); }
+    details.feeders { margin: 0 0 16px; border: 1px solid var(--line); padding: 10px 13px; }
+    details.feeders summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+    details.feeders .note { font-size: 12px; color: var(--muted); margin: 6px 0 2px; }
+    @media (max-width: 560px) { .cols { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 2px; font: inherit; font-size: 14px; }
+    textarea { min-height: 80px; resize: vertical; }
+    input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+    #msg { font-size: 13px; margin-top: 10px; line-height: 1.4; }
+    #msg:empty { display: none; }
+    #msg.err { color: var(--over); } #msg.good { color: var(--ok); }
+    .pid { font-family: Consolas, monospace; font-weight: 700; }
+    #thanks ul { padding-left: 18px; margin: 0 0 6px; font-size: 14px; line-height: 1.5; }
+    @media (max-width: 760px) {
+      #app { flex-direction: column; height: auto; min-height: 100%; }
+      #mapCol { flex: 0 0 auto; }
+      #mapWrap { flex: 0 0 55vh; height: 55vh; }
+      #mapHead { padding: 10px 16px; } #mapHead h1 { font-size: 17px; }
+      #panel { flex: 1 1 auto; border-left: 0; }
+      #panelBody { padding: 16px; overflow: visible; }
+      #panelFoot { position: sticky; bottom: 0; padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <main id="mapCol">
+      <header id="mapHead">
+        <h1 id="title" class="serif"></h1>
+        <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend">Map legend</button>
+        <div id="legend" hidden></div>
+      </header>
+      <div id="mapWrap">
+        <div id="viewDiv" aria-label="Map of elementary zones"></div>
+        <div id="chip" aria-hidden="true"></div>
+      </div>
+    </main>
+    <aside id="panel">
+      <div id="panelBody">
+        <p class="intro" id="intro"></p>
+        <div id="warnings"></div>
+        <div class="tabs" role="tablist">
+          <button id="tabMS" class="active" role="tab">Middle school</button>
+          <button id="tabHS" role="tab">High school</button>
+        </div>
+        <div class="sechead"><h2>Choose a school</h2><span id="schoolCount"></span></div>
+        <div id="schools"></div>
+        <div id="unassigned" class="callout"></div>
+        <details id="feedPanel" class="feeders" open>
+          <summary>Feeder patterns</summary>
+          <p class="note">Where each middle school's students go for high school.</p>
+          <div id="feedList"></div>
+        </details>
+        <div id="last" class="sr" role="status"></div>
+        <div class="actions" id="tools">
+          <button id="undoBtn" class="btn">Undo</button>
+          <button id="resetBtn" class="btn">Start over</button>
+          <button id="csvBtn" class="btn">Download CSV</button>
+        </div>
+        <div id="dlNote" hidden></div>
+      </div>
+      <div id="panelFoot"><button id="reviewBtn" class="btn primary">Review and submit plan</button></div>
+    </aside>
+  </div>
+
+  <div id="review" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+    <div class="box wide">
+      <div id="reviewForm">
+        <div class="scroll">
+          <h2 id="reviewTitle" class="serif">Review and submit</h2>
+          <label for="nameIn">Name (optional)</label>
+          <input id="nameIn" maxlength="100" autocomplete="name">
+          <label for="emailIn">Email (optional)</label>
+          <input id="emailIn" type="email" maxlength="150" autocomplete="email">
+          <label for="commentIn">Comments for the planning team (optional)</label>
+          <textarea id="commentIn" maxlength="2000"></textarea>
+          <div id="reviewSummary"></div>
+        </div>
+        <div class="foot">
+          <div id="msg" role="status"></div>
+          <div class="actions"><button id="reviewBack" class="btn">Back to map</button><button id="submitBtn" class="btn primary">Submit plan</button></div>
+        </div>
+      </div>
+      <div id="thanks" class="scroll" hidden tabindex="-1">
+        <h2 class="serif">Thank you, your plan was submitted</h2>
+        <p>Your plan ID is <span class="pid" id="thanksId"></span>.</p>
+        <ul id="thanksNext"></ul>
+        <div class="actions" style="margin-bottom:16px"><button id="thanksCsv" class="btn">Download my plan</button><button id="thanksNew" class="btn primary">Make another plan</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="dlg" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dlgText">
+    <div class="box">
+      <p id="dlgText"></p>
+      <div class="actions"><button id="dlgCancel" class="btn">Cancel</button><button id="dlgOk" class="btn primary">OK</button></div>
+    </div>
+  </div>
+
+  <!-- ?v= changes with each release so browsers don't keep an old copy -->
+  <script src="config.js?v=10"></script>
+  <script src="planner-core.js?v=10"></script>
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <script>
+  require([
+    "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic",
+    "esri/geometry/Polygon", "esri/request"
+  ], function (Map, MapView, FeatureLayer, Graphic, Polygon, esriRequest) {
+    var C = window.PLANNER_CONFIG, P = window.PlannerCore, F = C.fields;
+    // Projected enrollment is shown only when the layer has projected fields (always in demo mode)
+    var FRAMED = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
+    var HAS_PROJ = !C.zonesLayerUrl || !!(F.msProjected && F.hsProjected);
+    var state = { level: "MS", brush: null, zones: [], schools: [], assign: { MS: {}, HS: {} }, history: [], submitted: false };
+    var $ = function (id) { return document.getElementById(id); };
+    $("title").textContent = C.title;
+    $("intro").textContent = C.intro;
+    document.title = C.title;
+
+    var map = new Map({ basemap: "gray-vector" });
+    var view = new MapView({ container: "viewDiv", map: map, center: C.center, zoom: C.zoom,
+      popupEnabled: false, highlightOptions: { fillOpacity: 0, haloOpacity: 0 } });
+    var layer = null;
+
+    loadZones().then(function (zones) {
+      state.zones = zones;
+      var derived = P.deriveSchools(zones, C.schools);
+      state.schools = derived.schools;
+      if (derived.errors.length) {
+        showMap();
+        var w = $("warnings");
+        w.textContent = "The planner can't start until these are fixed in config.js:";
+        var ul = document.createElement("ul");
+        derived.errors.forEach(function (e) { var li = document.createElement("li"); li.textContent = e; ul.appendChild(li); });
+        w.appendChild(ul);
+        ["schools", "unassigned", "tools", "panelFoot"].forEach(function (id) { $(id).style.display = "none"; });
+        return;
+      }
+      resetAssignments();
+      buildLayer();
+      setLevel("MS");
+    }).catch(function (e) {
+      showMap();
+      $("warnings").textContent = "The zones layer could not be loaded. " + (e && e.message ? e.message : "");
+      console.error(e);
+    });
+
+    // ---------- data ----------
+    function loadZones() {
+      if (!C.zonesLayerUrl) return Promise.resolve(demoZones());
+      var src = new FeatureLayer({ url: C.zonesLayerUrl });
+      return src.load().then(function () {
+        var q = src.createQuery();
+        q.where = "1=1"; q.outFields = ["*"]; q.returnGeometry = true;
+        q.outSpatialReference = view.spatialReference;
+        return src.queryFeatures(q).then(function (fs) {
+          var oidField = src.objectIdField;
+          return fs.features.map(function (g) {
+            var a = g.attributes;
+            return {
+              id: String(a[F.zoneId] != null ? a[F.zoneId] : a[oidField]),
+              name: String(a[F.zoneName] != null ? a[F.zoneName] : "Zone " + a[oidField]),
+              msC: num(a[F.msCurrent]), msP: num(a[F.msProjected]),
+              hsC: num(a[F.hsCurrent]), hsP: num(a[F.hsProjected]),
+              curMs: a[F.currentMs], curHs: a[F.currentHs],
+              geometry: g.geometry
+            };
+          }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+        });
+      });
+    }
+
+    function showMap() { $("viewDiv").style.visibility = "visible"; }
+
+    function num(v) { return Math.round(Number(v) || 0); }
+
+    function demoZones() {
+      var out = [], cols = 6, rows = 4, size = 0.035;
+      var x0 = C.center[0] - cols * size / 2, y0 = C.center[1] - rows * size / 2;
+      // Demo zones use the schools from config.js, leaving schools marked planned empty
+      var names = function (level) { return (C.schools || []).filter(function (s) { return s.level === level && !s.planned; }).map(function (s) { return s.name; }); };
+      var msNames = names("MS"), hsNames = names("HS");
+      for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+        var i = r * cols + c, x = x0 + c * size, y = y0 + r * size;
+        out.push({
+          id: "E" + (i + 1 < 10 ? "0" : "") + (i + 1), name: "Elementary " + (i + 1),
+          msC: 220 + ((i * 37) % 110), msP: 210 + ((i * 41) % 140),
+          hsC: 300 + ((i * 53) % 130), hsP: 290 + ((i * 29) % 170),
+          curMs: msNames[c % msNames.length], curHs: hsNames[(c + r) % hsNames.length],
+          geometry: new Polygon({ rings: [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]], spatialReference: { wkid: 4326 } })
+        });
+      }
+      return out;
+    }
+
+    function resetAssignments() {
+      state.assign = { MS: {}, HS: {} };
+      if (C.startFromCurrent !== false) {
+        state.zones.forEach(function (z) {
+          var ms = P.matchSchool(state.schools, "MS", z.curMs), hs = P.matchSchool(state.schools, "HS", z.curHs);
+          if (ms) state.assign.MS[z.id] = ms;
+          if (hs) state.assign.HS[z.id] = hs;
+        });
+      }
+      state.history = [];
+    }
+
+    // ---------- map ----------
+    function buildLayer() {
+      var graphics = state.zones.map(function (z, i) {
+        z.oid = i + 1;
+        return new Graphic({ geometry: z.geometry, attributes: { oid: z.oid, zone_id: z.id, name: z.name, now_n: 0, proj_n: 0, assigned: "" } });
+      });
+      layer = new FeatureLayer({
+        source: graphics, objectIdField: "oid", geometryType: "polygon",
+        spatialReference: graphics.length ? graphics[0].geometry.spatialReference : view.spatialReference,
+        fields: [
+          { name: "oid", type: "oid" }, { name: "zone_id", type: "string" }, { name: "name", type: "string" },
+          { name: "now_n", type: "integer" }, { name: "proj_n", type: "integer" }, { name: "assigned", type: "string" }
+        ],
+        outFields: ["*"], title: "Elementary zones", popupEnabled: false,
+        labelingInfo: [{
+          labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' students'" },
+          symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
+        }]
+      });
+      map.add(layer);
+      layer.when(function () { return layer.queryExtent(); }).then(function (r) {
+        return r.extent ? view.goTo(r.extent.expand(1.1), { animate: false }) : null;
+      }).catch(function (e) { console.error(e); }).then(showMap);
+      view.on("click", function (evt) {
+        view.hitTest(evt, { include: [layer] }).then(function (res) {
+          var hit = res.results.filter(function (r) { return r.graphic && r.graphic.layer === layer; })[0];
+          if (hit) assignZone(hit.graphic.attributes.zone_id);
+        });
+      });
+      // Double-click unassigns a zone instead of zooming in
+      view.on("double-click", function (evt) {
+        evt.stopPropagation();
+        view.hitTest(evt, { include: [layer] }).then(function (res) {
+          var hit = res.results.filter(function (r) { return r.graphic && r.graphic.layer === layer; })[0];
+          if (hit) unassignZone(hit.graphic.attributes.zone_id);
+        });
+      });
+    }
+
+    function rendererFor(level) {
+      return {
+        type: "unique-value", field: "assigned",
+        defaultSymbol: { type: "simple-fill", style: "backward-diagonal", color: [120, 120, 120, 0.6], outline: { color: [90, 90, 90, 1], width: 1 } },
+        defaultLabel: "Unassigned",
+        uniqueValueInfos: P.schoolsFor(state.schools, level).map(function (s) {
+          return { value: s.id, label: s.name, symbol: { type: "simple-fill", color: hexToRgba(s.color, 0.55), outline: { color: [0, 0, 0, 0], width: 0 } } };
+        })
+      };
+    }
+
+    function refreshLayer(onlyZoneId) {
+      if (!layer) return;
+      var key = state.level === "MS" ? "ms" : "hs", a = state.assign[state.level];
+      var updates = state.zones.filter(function (z) { return !onlyZoneId || z.id === onlyZoneId; }).map(function (z) {
+        return new Graphic({ attributes: { oid: z.oid, now_n: z[key + "C"], proj_n: z[key + "P"], assigned: a[z.id] || "" } });
+      });
+      layer.applyEdits({ updateFeatures: updates });
+    }
+
+    // ---------- interaction ----------
+    function setLevel(level) {
+      state.level = level;
+      $("tabMS").classList.toggle("active", level === "MS");
+      $("tabHS").classList.toggle("active", level === "HS");
+      var list = P.schoolsFor(state.schools, level);
+      state.brush = list.length ? list[0].id : "";
+      if (layer) layer.renderer = rendererFor(level);
+      refreshLayer();
+      renderPanel();
+    }
+
+    function assignZone(zoneId, to) {
+      var target = to == null ? state.brush : to;
+      if (target == null) return;
+      var a = state.assign[state.level], prev = a[zoneId] || "";
+      if (prev === target) return;
+      state.history.push({ level: state.level, zoneId: zoneId, prev: prev, at: Date.now() });
+      if (target) a[zoneId] = target; else delete a[zoneId];
+      refreshLayer(zoneId);
+      var z = state.zones.filter(function (x) { return x.id === zoneId; })[0];
+      $("last").textContent = (z ? z.name : zoneId) + (target ? " assigned to " + nameOf(target) : " unassigned") + ".";
+      renderPanel();
+    }
+
+    // The clicks of a double-click assign the zone first; fold that into one unassign step
+    function unassignZone(zoneId) {
+      var h = state.history[state.history.length - 1];
+      if (h && h.zoneId === zoneId && h.level === state.level && Date.now() - h.at < 800) {
+        state.history.pop();
+        if (h.prev) state.assign[h.level][zoneId] = h.prev; else delete state.assign[h.level][zoneId];
+      }
+      assignZone(zoneId, "");
+    }
+
+    function undo() {
+      var h = state.history.pop();
+      if (!h) return;
+      if (h.prev) state.assign[h.level][h.zoneId] = h.prev; else delete state.assign[h.level][h.zoneId];
+      if (h.level !== state.level) setLevel(h.level); else { refreshLayer(h.zoneId); renderPanel(); }
+      $("last").textContent = "Undid the last change.";
+    }
+
+    function renderPanel() {
+      var tc = P.computeTotals(state.zones, state.assign[state.level], state.schools, state.level, "C");
+      var tp = P.computeTotals(state.zones, state.assign[state.level], state.schools, state.level, "P");
+      var box = $("schools");
+      box.innerHTML = "";
+      tc.rows.forEach(function (r, i) {
+        var rp = tp.rows[i];
+        var b = document.createElement("button");
+        b.className = "school" + (state.brush === r.school.id ? " selected" : "");
+        b.innerHTML = '<div class="top"><span class="swatch"></span><span class="name"></span><span class="cap"></span></div>';
+        b.querySelector(".swatch").style.background = r.school.color;
+        b.querySelector(".name").textContent = r.school.name;
+        b.querySelector(".cap").textContent = r.capacity.toLocaleString() + " seats";
+        b.appendChild(meter(HAS_PROJ ? "Current" : "Students", r));
+        if (HAS_PROJ) b.appendChild(meter("Projected", rp));
+        b.title = r.zones + " zones";
+        b.onclick = function () { state.brush = r.school.id; renderPanel(); };
+        box.appendChild(b);
+      });
+      var e = document.createElement("button");
+      e.className = "school unassign" + (state.brush === "" ? " selected" : "");
+      e.innerHTML = '<div class="top"><span class="swatch none"></span><span class="name">Unassign</span></div>';
+      e.onclick = function () { state.brush = ""; renderPanel(); };
+      box.appendChild(e);
+      $("schoolCount").textContent = tc.rows.length + " schools";
+
+      var u = tc.unassigned, up = tp.unassigned, un = $("unassigned"), lvl = state.level === "MS" ? "middle" : "high";
+      un.innerHTML = "<strong></strong><span></span>";
+      un.className = "callout" + (u.zones ? "" : " done");
+      un.firstChild.textContent = u.zones ? u.zones.toLocaleString() + (u.zones === 1 ? " zone still needs a " : " zones still need a ") + lvl + " school" : "Every zone has a " + lvl + " school";
+      un.lastChild.textContent = u.zones ? u.students.toLocaleString() + " students" + (HAS_PROJ ? " (" + up.students.toLocaleString() + " projected)" : "") + " are not yet assigned." : "";
+
+      var chip = $("chip");
+      chip.innerHTML = "";
+      if (state.brush != null) {
+        chip.appendChild(document.createTextNode(state.brush ? "Assigning to " : "Unassigning zones"));
+        if (state.brush) { var bn = document.createElement("strong"); bn.textContent = nameOf(state.brush); chip.appendChild(bn); }
+      }
+      $("undoBtn").disabled = !state.history.length;
+      renderFeeders($("feedList"));
+      renderLegend();
+    }
+
+    // One line per middle school: the share of its students going to each high school
+    function renderFeeders(box) {
+      box.innerHTML = "";
+      var rows = P.computeFeeders(state.zones, state.assign.MS, state.assign.HS, state.schools);
+      if (!rows.length) {
+        var p = document.createElement("p"); p.className = "note";
+        p.textContent = "Assign zones to middle and high schools to see feeder patterns.";
+        box.appendChild(p); return;
+      }
+      rows.forEach(function (f) {
+        var d = document.createElement("div"); d.className = "feed";
+        d.innerHTML = '<span class="n"></span><span class="parts"></span>';
+        d.querySelector(".n").textContent = f.school.name;
+        var text = f.parts.map(function (x) { return x.school.name + " " + x.pct + "%"; });
+        if (f.unassigned) text.push("no high school yet " + f.unassignedPct + "%");
+        d.querySelector(".parts").textContent = text.join(", ");
+        box.appendChild(d);
+      });
+    }
+
+    function renderLegend() {
+      var lg = $("legend");
+      lg.innerHTML = "";
+      P.schoolsFor(state.schools, state.level).concat([{ name: "Unassigned" }]).forEach(function (s) {
+        var row = document.createElement("div"), sw = document.createElement("span"), t = document.createElement("span");
+        sw.className = "swatch" + (s.color ? "" : " none");
+        if (s.color) sw.style.background = s.color;
+        t.textContent = s.name;
+        row.appendChild(sw); row.appendChild(t); lg.appendChild(row);
+      });
+    }
+
+    // One labelled bar: students vs capacity, scale 0 to 125%, tick at 100%
+    function meter(label, r) {
+      var row = document.createElement("div");
+      row.className = "meter st-" + r.status;
+      row.innerHTML = '<div class="mtop"><span class="mlabel"></span><span class="nums"></span></div><div class="bar"><span></span><i></i></div>';
+      row.querySelector(".mlabel").textContent = label;
+      var nums = row.querySelector(".nums");
+      nums.appendChild(document.createTextNode(r.students.toLocaleString()));
+      var pct = document.createElement("span"); pct.className = "pct";
+      pct.textContent = r.pct + "%" + (r.status === "over" ? " over" : "");
+      nums.appendChild(pct);
+      var fill = row.querySelector(".bar span");
+      fill.style.width = Math.min(r.pct, 125) / 1.25 + "%";
+      fill.style.background = r.status === "over" ? "var(--over)" : r.school.color;
+      if (label === "Projected") fill.style.opacity = "0.6";
+      row.querySelector(".bar i").style.left = (100 / 1.25) + "%";
+      return row;
+    }
+
+    function nameOf(id) {
+      var s = state.schools.filter(function (x) { return x.id === id; })[0];
+      return s ? s.name : id;
+    }
+
+    function hexToRgba(hex, a) {
+      var h = hex.replace("#", "");
+      if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), a];
+    }
+
+    function showMsg(text, isErr) {
+      var m = $("msg"); m.textContent = text; m.className = isErr ? "err" : "good";
+    }
+
+    // ---------- CSV ----------
+    function downloadCsv(planId) {
+      var csv = P.buildCsv(state.zones, state.assign.MS, state.assign.HS, state.schools, planId || "draft");
+      var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "boundary-plan-" + (planId || "draft") + ".csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      if (FRAMED) showDownloadHelp(csv, planId);
+    }
+
+    // Pages embedded in Experience Builder can't always download files, so offer
+    // the plan as copyable text and a link to open the planner in its own tab.
+    function showDownloadHelp(csv, planId) {
+      var box = planId ? $("thanks") : null, note = $("dlNote");
+      note.hidden = false;
+      note.innerHTML = 'If no file downloaded, your browser blocked it inside this page. <a target="_blank" rel="noopener">Open the planner in its own tab</a> to download, or <button class="link" type="button">show the plan as text</button> to copy.';
+      note.querySelector("a").href = location.href;
+      note.querySelector("button").onclick = function () {
+        var t = $("csvText") || document.createElement("textarea");
+        t.id = "csvText"; t.readOnly = true; t.value = csv;
+        note.appendChild(t); t.focus(); t.select();
+      };
+      if (box) box.appendChild(note);
+    }
+
+    // In-page yes/no prompt (browser pop-up prompts are blocked inside embeds)
+    function ask(text, okLabel) {
+      return new Promise(function (resolve) {
+        $("dlgText").textContent = text;
+        $("dlgOk").textContent = okLabel || "OK";
+        $("dlg").hidden = false; $("dlgOk").focus();
+        function done(v) { $("dlg").hidden = true; $("dlgOk").onclick = $("dlgCancel").onclick = null; resolve(v); }
+        $("dlgOk").onclick = function () { done(true); };
+        $("dlgCancel").onclick = function () { done(false); };
+      });
+    }
+
+    // ---------- submit ----------
+    function submitPlan() {
+      if (state.submitted) return;
+      var tm = P.computeTotals(state.zones, state.assign.MS, state.schools, "MS", "C");
+      var th = P.computeTotals(state.zones, state.assign.HS, state.schools, "HS", "C");
+      var tmp = P.computeTotals(state.zones, state.assign.MS, state.schools, "MS", "P");
+      var thp = P.computeTotals(state.zones, state.assign.HS, state.schools, "HS", "P");
+      if (tm.unassigned.zones || th.unassigned.zones) return;
+      // A school counts as over if it is over capacity now or projected
+      var allNow = tm.rows.concat(th.rows), allProj = tmp.rows.concat(thp.rows);
+      var over = allNow.filter(function (r, i) { return r.status === "over" || (HAS_PROJ && allProj[i].status === "over"); });
+      if (!C.submissionsTableUrl) { showMsg("Online submission is not set up yet. Use Download CSV to save your plan.", true); return; }
+      // Over-capacity plans are allowed; the count is saved with the plan
+      var planId = P.makePlanId();
+      var attrs = {
+        plan_id: planId,
+        submitted_at: Date.now(),
+        submitter_name: $("nameIn").value.trim().slice(0, 100),
+        submitter_email: $("emailIn").value.trim().slice(0, 150),
+        comments: $("commentIn").value.trim().slice(0, 2000),
+        ms_plan: P.encodePlan(state.zones, state.assign.MS).slice(0, 10000),
+        hs_plan: P.encodePlan(state.zones, state.assign.HS).slice(0, 10000),
+        ms_totals: P.totalsText(tm).slice(0, 2000),
+        hs_totals: P.totalsText(th).slice(0, 2000),
+        ms_totals_projected: HAS_PROJ ? P.totalsText(tmp).slice(0, 2000) : "",
+        hs_totals_projected: HAS_PROJ ? P.totalsText(thp).slice(0, 2000) : "",
+        over_capacity: over.length
+      };
+      var btn = $("submitBtn"); btn.disabled = true; showMsg("Submitting…", false);
+      esriRequest(C.submissionsTableUrl.replace(/\/$/, "") + "/addFeatures", {
+        method: "post", responseType: "json",
+        query: { f: "json", features: JSON.stringify([{ attributes: attrs }]) }
+      }).then(function (res) {
+        var r = res.data && res.data.addResults && res.data.addResults[0];
+        if (!r || !r.success) throw new Error((r && r.error && r.error.description) || "The server did not accept the plan.");
+        state.submitted = true;
+        showMsg("", false);
+        showThanks(planId);
+      }).catch(function (e) {
+        btn.disabled = false;
+        showMsg("Submission failed: " + (e && e.message ? e.message : e) + " You can still download your plan as a CSV.", true);
+      });
+    }
+
+    function showThanks(planId) {
+      $("reviewForm").hidden = true;
+      $("thanksId").textContent = planId;
+      fillList($("thanksNext"), C.nextSteps || []);
+      $("thanksCsv").onclick = function () { downloadCsv(planId); };
+      $("thanks").hidden = false;
+      $("thanks").focus();
+    }
+
+    // Review pop-up: totals for both levels, then the optional contact fields
+    function openReview() {
+      var box = $("reviewSummary");
+      box.innerHTML = '<div class="plan"><div class="cols"></div></div><div class="plan"><h3>Feeder patterns</h3><div class="feeders"></div></div>';
+      var cols = box.querySelector(".cols"), open = [];
+      ["MS", "HS"].forEach(function (level) {
+        var tc = P.computeTotals(state.zones, state.assign[level], state.schools, level, "C");
+        var tp = P.computeTotals(state.zones, state.assign[level], state.schools, level, "P");
+        var col = document.createElement("div");
+        var h = document.createElement("h3"); h.textContent = level === "MS" ? "Middle schools" : "High schools";
+        col.appendChild(h);
+        tc.rows.forEach(function (r, i) {
+          var p = tp.rows[i], over = r.status === "over" || (HAS_PROJ && p.status === "over");
+          var row = document.createElement("div"); row.className = "srow" + (over ? " over" : "");
+          row.innerHTML = '<span class="n"></span><span class="v"><span class="c"></span><b></b></span><div class="bar"><span></span><i></i></div>';
+          row.querySelector(".n").textContent = r.school.name;
+          row.querySelector(".c").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
+          row.querySelector("b").textContent = r.pct + "%" + (HAS_PROJ ? ", proj. " + p.pct + "%" : "");
+          var fill = row.querySelector(".bar span");
+          fill.style.width = Math.min(r.pct, 125) / 1.25 + "%";
+          fill.style.background = r.status === "over" ? "var(--over)" : r.school.color;
+          row.querySelector(".bar i").style.left = (100 / 1.25) + "%";
+          col.appendChild(row);
+        });
+        cols.appendChild(col);
+        if (tc.unassigned.zones) open.push(tc.unassigned.zones + " " + (level === "MS" ? "middle" : "high"));
+      });
+      renderFeeders(box.querySelector(".feeders"));
+      $("submitBtn").disabled = !!open.length || state.submitted;
+      showMsg(open.length ? "Assign every zone before submitting (" + open.join(" and ") + " school zones still open)." : "", true);
+      $("reviewForm").hidden = false; $("thanks").hidden = true;
+      $("review").hidden = false;
+      $("nameIn").focus();
+    }
+
+    function fillList(ul, items) {
+      ul.innerHTML = "";
+      items.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    }
+
+    $("thanksNew").onclick = function () {
+      state.submitted = false;
+      $("review").hidden = true;
+      $("submitBtn").disabled = false;
+      ["nameIn", "emailIn", "commentIn"].forEach(function (id) { $(id).value = ""; });
+      resetAssignments(); setLevel("MS"); $("last").textContent = "";
+    };
+    $("tabMS").onclick = function () { setLevel("MS"); };
+    $("tabHS").onclick = function () { setLevel("HS"); };
+    $("undoBtn").onclick = undo;
+    $("resetBtn").onclick = function () {
+      ask("Start over? This clears your changes.", "Start over").then(function (ok) {
+        if (!ok) return;
+        resetAssignments(); setLevel(state.level); $("last").textContent = ""; $("dlNote").hidden = true;
+      });
+    };
+    $("csvBtn").onclick = function () { downloadCsv(); };
+    $("submitBtn").onclick = submitPlan;
+    $("reviewBtn").onclick = openReview;
+    $("reviewBack").onclick = function () { $("review").hidden = true; };
+    $("legendBtn").onclick = function () {
+      var lg = $("legend"); lg.hidden = !lg.hidden;
+      this.setAttribute("aria-expanded", String(!lg.hidden));
+    };
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      $("legend").hidden = true;
+      if (!$("review").hidden && !state.submitted) $("review").hidden = true;
+    });
+  });
+  </script>
+</body>
+</html>
