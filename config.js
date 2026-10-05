@@ -9,6 +9,12 @@ window.PLANNER_CONFIG = {
   // Public URL of the elementary zones layer, ending in /FeatureServer/0
   zonesLayerUrl: "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/DEKALBAPPNOTREALDATA/FeatureServer/0",
 
+  // Optional: item ID of a publicly shared web map to use as the background, so its
+  // basemap and layers (school points and labels, roads) show under the planner.
+  // Leave "" for a plain gray basemap. The zones layer can be in the map or not.
+  webMapId: "",
+  portalUrl: "",
+
   // Public add-only table that receives plans, ending in /FeatureServer/0.
   // Leave empty to allow CSV download only.
   submissionsTableUrl: "",

@@ -196,14 +196,14 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=10"></script>
-  <script src="planner-core.js?v=10"></script>
+  <script src="config.js?v=11"></script>
+  <script src="planner-core.js?v=11"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
-    "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic",
+    "esri/Map", "esri/WebMap", "esri/config", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic",
     "esri/geometry/Polygon", "esri/request"
-  ], function (Map, MapView, FeatureLayer, Graphic, Polygon, esriRequest) {
+  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest) {
     var C = window.PLANNER_CONFIG, P = window.PlannerCore, F = C.fields;
     // Projected enrollment is shown only when the layer has projected fields (always in demo mode)
     var FRAMED = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
@@ -214,12 +214,29 @@
     $("intro").textContent = C.intro;
     document.title = C.title;
 
+    // Optional public web map: its basemap and layers (school points, labels, roads)
+    // draw with the planner's zones on top of the basemap
+    if (C.portalUrl) esriConfig.portalUrl = C.portalUrl;
     var map = new Map({ basemap: "gray-vector" });
+    var mapReady = Promise.resolve();
+    if (C.webMapId) {
+      var webMap = new WebMap({ portalItem: { id: C.webMapId } });
+      mapReady = webMap.load().then(function () {
+        // Hide the zones layer if the web map includes it; the planner draws its own copy
+        var base = C.zonesLayerUrl.replace(/\/\d+\/?$/, "").toLowerCase();
+        webMap.allLayers.forEach(function (l) { if (base && l.url && l.url.toLowerCase().indexOf(base) === 0) l.visible = false; });
+        map = webMap; view.map = webMap;
+      }).catch(function (e) {
+        // Fall back to the plain basemap so the planner still works
+        $("warnings").textContent = "The background map could not be loaded, so a plain basemap is shown. Check that webMapId is right and the map is shared publicly.";
+        console.error(e);
+      });
+    }
     var view = new MapView({ container: "viewDiv", map: map, center: C.center, zoom: C.zoom,
       popupEnabled: false, highlightOptions: { fillOpacity: 0, haloOpacity: 0 } });
     var layer = null;
 
-    loadZones().then(function (zones) {
+    mapReady.then(function () { return view.when(); }).catch(function () {}).then(loadZones).then(function (zones) {
       state.zones = zones;
       var derived = P.deriveSchools(zones, C.schools);
       state.schools = derived.schools;
@@ -321,7 +338,7 @@
           symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
         }]
       });
-      map.add(layer);
+      map.add(layer, 0); // under any web map layers, so school points stay visible
       layer.when(function () { return layer.queryExtent(); }).then(function (r) {
         return r.extent ? view.goTo(r.extent.expand(1.1), { animate: false }) : null;
       }).catch(function (e) { console.error(e); }).then(showMap);
