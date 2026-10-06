@@ -15,6 +15,27 @@ window.PLANNER_CONFIG = {
   webMapId: "",
   portalUrl: "",
 
+  // Optional: only these elementary zones are loaded; leave [] for every zone in the
+  // layer. A name matches a zone whose name contains it, so "Montgomery ES" matches
+  // "Upper and Lower grades at Montgomery ES & Nancy Creek ES".
+  // These are the zones feeding the planner's middle and high schools (2024 feeder
+  // patterns, with the new Sequoyah cluster).
+  zoneNames: [
+    // Chamblee MS / Chamblee HS
+    "Ashford Park ES", "John Lewis ES", "Huntley Hills ES", "Montgomery ES",
+    // Peachtree MS / Dunwoody HS and Sequoyah HS
+    "Austin ES", "Chesnut ES", "Dunwoody ES", "Kingsley ES", "Vanderlyn ES", "Hightower ES",
+    // Sequoyah MS / Sequoyah HS
+    "Doraville United ES", "Oakcliff", "Pleasantdale ES",
+    // Henderson MS / Lakeside HS and Cross Keys HS
+    "Briarlake ES", "Evansdale ES", "Hawthorne ES", "Henderson Mill ES", "Oak Grove ES", "Sagamore Hills ES",
+    "Dresden ES", "Montclair ES",
+    // Druid Hills MS / Cross Keys HS and Druid Hills HS
+    "Briar Vista ES", "Woodward ES", "Avondale ES", "Fernbank ES", "Laurel Ridge ES", "McLendon ES",
+    // Tucker MS / Tucker HS
+    "Brockett ES", "Idlewood ES", "Livsey ES", "Midvale ES", "Smoke Rise ES"
+  ],
+
   // Optional: public layer of school locations, ending in /FeatureServer/0. Points are
   // matched to the schools below by name ("Dunwoody HS" matches "Dunwoody High School"),
   // so elementary, charter and private schools in the layer are ignored. Shows the
