@@ -4,17 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Boundary Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Carlito:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
   <style>
-    :root { --ink: #16202b; --muted: #5d6875; --line: #d6dbe1; --accent: #1f3fb5; --accent-soft: #f2f5fc; --over: #c8102e; --ok: #0a7d3b; --warn-bg: #fff8e5; --warn: #e0a100; }
+    /* DeKalb County School District colors: Flat Rock Sunrise, South River Current, Stone Mountain Mist, Decatur Eclipse */
+    :root { --orange: #f68e29; --blue: #18b8eb; --mist: #bfc0c4; --ink: #231e1f; --muted: #5a5759; --line: #d9dadc; --accent: #1979a7; --accent-soft: #eef8fd; --over: #c8102e; --ok: #0a7d3b; --warn-bg: #fff8e5; --warn: #e0a100; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: #fff; }
+    html, body { margin: 0; height: 100%; font-family: Calibri, Carlito, "Segoe UI", Roboto, Arial, sans-serif; color: var(--ink); background: #fff; }
     button { font: inherit; color: inherit; }
-    .serif { font-family: Georgia, "Times New Roman", serif; }
+    .serif { font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-weight: 400; letter-spacing: .02em; }
     #app { display: flex; height: 100%; }
     #mapCol { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
-    #mapHead { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: #fff; }
-    #mapHead h1 { flex: 1; margin: 0; font-size: 20px; line-height: 1.25; }
+    #mapHead { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 4px solid var(--orange); background: #fff; }
+    #mapHead h1 { flex: 1; margin: 0; font-size: 28px; line-height: 1.1; }
     .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 2px; cursor: pointer; font-size: 14px; }
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
     .btn:disabled { color: #a3abb5; cursor: default; }
@@ -31,7 +35,7 @@
     .esri-view .esri-view-surface:focus::after, .esri-view .esri-view-surface:focus-visible::after { outline: none !important; }
     #chip { position: absolute; left: 16px; bottom: 28px; z-index: 5; background: #fff; border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     #chip:empty { display: none; }
-    #panel { flex: 0 0 380px; display: flex; flex-direction: column; border-left: 1px solid var(--line); border-top: 6px solid var(--accent); min-height: 0; }
+    #panel { flex: 0 0 380px; display: flex; flex-direction: column; border-left: 1px solid var(--line); border-top: 6px solid var(--blue); min-height: 0; }
     #panelBody { flex: 1 1 auto; overflow-y: auto; padding: 18px 22px 20px; }
     #panelFoot { padding: 14px 22px 16px; border-top: 1px solid var(--line); background: #fff; }
     #panelFoot .btn { width: 100%; padding: 13px; font-size: 16px; }
@@ -77,9 +81,9 @@
     /* pop-ups */
     .dlg { position: fixed; inset: 0; background: rgba(15, 23, 32, .45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
     .dlg[hidden] { display: none; }
-    .dlg .box { background: #fff; border-top: 6px solid var(--accent); padding: 20px 22px; max-width: 420px; width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+    .dlg .box { background: #fff; border-top: 6px solid var(--orange); padding: 20px 22px; max-width: 420px; width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
     .dlg .box.wide { max-width: 560px; }
-    .dlg h2 { font-size: 22px; margin: 0 0 12px; }
+    .dlg h2 { font-size: 28px; margin: 0 0 12px; }
     .dlg h3 { font-size: 14px; margin: 14px 0 6px; }
     .dlg p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
     .dlg .actions { justify-content: flex-end; margin-top: 16px; }
@@ -104,7 +108,7 @@
     #feedView { position: absolute; inset: 0; z-index: 8; background: #fff; overflow: auto; padding: 16px 20px; }
     #feedView[hidden] { display: none; }
     #feedView .fhead { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
-    #feedView h2 { font-size: 18px; margin: 0; }
+    #feedView h2 { font-size: 24px; margin: 0; }
     #feedView .note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
     #feedView .note:empty { display: none; }
     #feedTree { font-size: 13px; }
@@ -112,15 +116,15 @@
     .fbox { padding: 9px 8px; text-align: center; line-height: 1.25; color: #fff; display: flex; flex-direction: column; justify-content: center; }
     .fbox b { font-size: 14px; font-weight: 700; }
     .fbox span { font-size: 12.5px; opacity: .9; }
-    .fbox.lv0 { background: #e8772e; }
-    .fbox.lv1 { background: #1f6fa3; }
+    .fbox.lv0 { background: var(--orange); color: var(--ink); }
+    .fbox.lv1 { background: var(--accent); }
     .fbox.lv2 { background: #2b7a6e; }
     .fbox.none { background: #fff; color: var(--muted); border: 1px dashed #b8c0c9; }
     .farw { position: relative; height: 54px; }
     .farw i { position: absolute; left: 50%; top: 2px; bottom: 0; border-left: 2px solid #3d444c; }
     .farw i::before { content: ""; position: absolute; top: -2px; left: -7px; border: 6px solid transparent; border-bottom: 9px solid #3d444c; border-top: 0; }
-    .farw em { position: absolute; left: calc(50% + 8px); top: 18px; font-style: normal; font-size: 12px; font-weight: 700; color: #16202b; }
-    .fzones div { background: #dce6f0; color: #16202b; text-align: center; padding: 7px 6px; margin-bottom: 6px; font-weight: 600; font-size: 12.5px; line-height: 1.25; }
+    .farw em { position: absolute; left: calc(50% + 8px); top: 18px; font-style: normal; font-size: 12px; font-weight: 700; color: var(--ink); }
+    .fzones div { background: #e6e7e9; color: var(--ink); text-align: center; padding: 7px 6px; margin-bottom: 6px; font-weight: 600; font-size: 12.5px; line-height: 1.25; }
     #feedBtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
     details.feeders { margin: 0 0 16px; border: 1px solid var(--line); padding: 10px 13px; }
     details.feeders summary { cursor: pointer; font-weight: 700; font-size: 15px; }
@@ -223,8 +227,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=14"></script>
-  <script src="planner-core.js?v=14"></script>
+  <script src="config.js?v=15"></script>
+  <script src="planner-core.js?v=15"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
