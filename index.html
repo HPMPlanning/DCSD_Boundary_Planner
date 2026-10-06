@@ -17,9 +17,9 @@
     .serif { font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-weight: 400; letter-spacing: .02em; }
     #app { display: flex; height: 100%; }
     #mapCol { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
-    #mapHead { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: #fff; }
+    #mapHead { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: #fff; }
     #logo { height: 36px; width: auto; flex: 0 0 auto; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
-    #mapHead h1 { flex: 1 1 auto; min-width: 0; margin: 0; font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; font-size: 25px; font-weight: 400; letter-spacing: 0; line-height: 1.1; color: var(--ink); }
+    #mapHead h1 { flex: 1 0 auto; white-space: nowrap; margin: 0; font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; font-size: 25px; font-weight: 400; letter-spacing: 0; line-height: 1.1; color: var(--ink); }
     .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 2px; cursor: pointer; font-size: 14px; }
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
     .btn:disabled { color: #a3abb5; cursor: default; }
@@ -76,8 +76,11 @@
     .sr { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     /* The app fills the window exactly; only the side panel scrolls (phones scroll the page) */
     @media (min-width: 901px) { html, body { overflow: hidden; } }
-    .hbtns { display: flex; gap: 12px; flex: 0 0 auto; }
-    @media (min-width: 901px) and (max-width: 1180px) { #mapHead { flex-wrap: wrap; row-gap: 8px; } #mapHead h1 { font-size: 21px; min-width: 0; } }
+    .hbtns { display: flex; gap: 12px; flex: 0 0 auto; margin-left: auto; }
+    /* Shrink the logo and title with the map column so they stay on one line */
+    #mapCol { container-type: inline-size; }
+    @container (max-width: 680px) { #logo { height: 28px; padding-right: 10px; } #mapHead h1 { font-size: 20px; } }
+    @container (max-width: 470px) { #logo { height: 22px; padding-right: 8px; } #mapHead h1 { font-size: 16px; } }
     #warnings { font-size: 13px; color: var(--over); margin-bottom: 10px; line-height: 1.45; }
     #warnings:empty { display: none; }
     #warnings ul { margin: 6px 0 0; padding-left: 18px; }
@@ -237,8 +240,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=20"></script>
-  <script src="planner-core.js?v=20"></script>
+  <script src="config.js?v=21"></script>
+  <script src="planner-core.js?v=21"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
@@ -386,12 +389,13 @@
       }).sort(function (a, b) { return a.norm.length - b.norm.length; });
       return loose[0] || null;
     }
-    function loadSchoolPoints() {
+    function loadSchoolPoints(where) {
       if (!C.schoolPointsUrl) return;
+      where = where || C.schoolPointsWhere || "1=1";
       var src = new FeatureLayer({ url: C.schoolPointsUrl });
       src.load().then(function () {
         var q = src.createQuery();
-        q.where = C.schoolPointsWhere || "1=1"; q.outFields = ["*"]; q.returnGeometry = true;
+        q.where = where; q.outFields = ["*"]; q.returnGeometry = true;
         q.outSpatialReference = layer ? layer.spatialReference : view.spatialReference;
         return src.queryFeatures(q).then(function (fs) {
           // Use the name field from config, or the text field that matches the most schools
@@ -405,7 +409,11 @@
             var n = Object.keys(hits).length;
             if (!best || n > best.n) best = { n: n, hits: hits };
           });
-          if (!best || !best.n) { console.warn("No school points matched the schools in config.js"); return; }
+          if (!best || !best.n) {
+            // A filter that matches nothing is retried without it
+            if (where !== "1=1") return loadSchoolPoints("1=1");
+            console.warn("No school points matched the schools in config.js"); return;
+          }
           var graphics = [];
           state.schools.forEach(function (s) {
             var g = best.hits[s.id];
@@ -428,7 +436,10 @@
           map.add(ptsLayer);
           renderPanel();
         });
-      }).catch(function (e) { console.error("School points could not be loaded", e); });
+      }).catch(function (e) {
+        if (where !== "1=1") return loadSchoolPoints("1=1");
+        console.error("School points could not be loaded", e);
+      });
     }
     function centerOf(z) {
       var g = z.geometry;
