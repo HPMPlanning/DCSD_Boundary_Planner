@@ -105,8 +105,22 @@
     #feedView[hidden] { display: none; }
     #feedView .fhead { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
     #feedView h2 { font-size: 18px; margin: 0; }
-    #feedView .note { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
-    #feedSvg text { font-family: inherit; }
+    #feedView .note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+    #feedView .note:empty { display: none; }
+    #feedTree { font-size: 13px; }
+    .ftree { display: grid; column-gap: 8px; min-width: min-content; padding-right: 20px; }
+    .fbox { padding: 9px 8px; text-align: center; line-height: 1.25; color: #fff; display: flex; flex-direction: column; justify-content: center; }
+    .fbox b { font-size: 14px; font-weight: 700; }
+    .fbox span { font-size: 12.5px; opacity: .9; }
+    .fbox.lv0 { background: #e8772e; }
+    .fbox.lv1 { background: #1f6fa3; }
+    .fbox.lv2 { background: #2b7a6e; }
+    .fbox.none { background: #fff; color: var(--muted); border: 1px dashed #b8c0c9; }
+    .farw { position: relative; height: 54px; }
+    .farw i { position: absolute; left: 50%; top: 2px; bottom: 0; border-left: 2px solid #3d444c; }
+    .farw i::before { content: ""; position: absolute; top: -2px; left: -7px; border: 6px solid transparent; border-bottom: 9px solid #3d444c; border-top: 0; }
+    .farw em { position: absolute; left: calc(50% + 8px); top: 18px; font-style: normal; font-size: 12px; font-weight: 700; color: #16202b; }
+    .fzones div { background: #dce6f0; color: #16202b; text-align: center; padding: 7px 6px; margin-bottom: 6px; font-weight: 600; font-size: 12.5px; line-height: 1.25; }
     #feedBtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
     details.feeders { margin: 0 0 16px; border: 1px solid var(--line); padding: 10px 13px; }
     details.feeders summary { cursor: pointer; font-weight: 700; font-size: 15px; }
@@ -147,7 +161,7 @@
         <div id="feedView" hidden>
           <div class="fhead"><h2 class="serif">Feeder patterns</h2></div>
           <p class="note" id="feedNote"></p>
-          <svg id="feedSvg" role="img" aria-label="Diagram of where each middle school's students go for high school"></svg>
+          <div id="feedTree" role="img" aria-label="Feeder pattern tree"></div>
           <div id="feedList" class="feeders sr"></div>
         </div>
       </div>
@@ -209,8 +223,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=13"></script>
-  <script src="planner-core.js?v=13"></script>
+  <script src="config.js?v=14"></script>
+  <script src="planner-core.js?v=14"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
@@ -503,73 +517,124 @@
     }
 
     var FKEYS = ["MS", "HS"];
-    // Feeder diagram: one column per level, a box per school, and an arrow from each
-    // school to every next-level school its students go to, thicker for a bigger share
-    var SVGNS = "http://www.w3.org/2000/svg";
-    function svgEl(tag, attrs, parent) {
-      var e = document.createElementNS(SVGNS, tag);
-      for (var k in attrs) e.setAttribute(k, attrs[k]);
-      if (parent) parent.appendChild(e);
-      return e;
-    }
+    var FEED_UNITS = "elementary zones";
+    function studOf(z, k) { return Number(k === "MS" ? z.msC : z.hsC) || 0; }
+    function FEED_LEVEL_NAME(k) { return k === "MS" ? "middle school" : "high school"; }
+    // Feeder tree: top level at the top, each lower level below it, building blocks at the bottom.
+    // One column per distinct path of assignments; boxes span the columns they cover.
     function drawFeederDiagram() {
-      var svg = $("feedSvg");
-      while (svg.firstChild) svg.removeChild(svg.firstChild);
-      $("feedNote").textContent = "Arrows show where each school's students go at the next level, based on the " + "elementary zones" + " assigned to it. Thicker arrows carry a bigger share.";
-      var W = Math.max(520, $("feedView").clientWidth - 40), nodeH = 42, gap = 12, top = 30;
-      var colW = W / FKEYS.length, nodeW = Math.min(210, colW - 90);
-      var pos = {}, maxH = 0;
-      var cols = FKEYS.map(function (k, ci) {
-        var tc = P.computeTotals(state.zones, state.assign[k], state.schools, k, "C");
-        var rows = tc.rows.filter(function (r) { return r.zones > 0; }).sort(function (a, b) { return b.students - a.students; });
-        maxH = Math.max(maxH, rows.length * (nodeH + gap));
-        return { key: k, rows: rows, x: ci * colW + (colW - nodeW) / 2 };
+      var box = $("feedTree");
+      box.innerHTML = "";
+      var keys = FKEYS, top = keys.length - 1;
+      var byId = {};
+      state.schools.forEach(function (s) { byId[s.id] = s; });
+      var zs = state.zones.filter(function (z) { return keys.some(function (k) { return state.assign[k][z.id]; }); });
+      var left = state.zones.length - zs.length;
+      $("feedNote").textContent = "Percentages show how a split school's students divide." + (left ? " " + left + " of " + state.zones.length + " " + FEED_UNITS + " are not assigned yet and are left out." : "");
+      if (!zs.length) { box.textContent = "Assign " + FEED_UNITS + " to schools to see feeder patterns."; return; }
+      // Order top-level schools so ones sharing a lower school sit side by side
+      var low = keys[0], topK = keys[top], links = {}, tops = {};
+      zs.forEach(function (z) { var t = state.assign[topK][z.id]; if (t) tops[t] = 1; });
+      var lowTops = {};
+      zs.forEach(function (z) { var l = state.assign[low][z.id], t = state.assign[topK][z.id]; if (l && t) (lowTops[l] = lowTops[l] || {})[t] = 1; });
+      Object.keys(lowTops).forEach(function (l) {
+        var ts = Object.keys(lowTops[l]);
+        ts.forEach(function (a) { ts.forEach(function (b) { if (a !== b) { links[a] = links[a] || {}; links[a][b] = (links[a][b] || 0) + 1; } }); });
       });
-      var H = top + maxH + 10;
-      svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-      cols.forEach(function (c) {
-        var t = svgEl("text", { x: c.x + nodeW / 2, y: 14, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#5d6875", "letter-spacing": ".04em" }, svg);
-        t.textContent = (c.key === "MS" ? "MIDDLE SCHOOLS" : "HIGH SCHOOLS");
-        var y0 = top + (maxH - c.rows.length * (nodeH + gap)) / 2;
-        c.rows.forEach(function (r, i) { pos[c.key + "|" + r.school.id] = { x: c.x, y: y0 + i * (nodeH + gap), r: r }; });
+      var nm = function (id) { return byId[id] ? byId[id].name : ""; };
+      var order = [], seen = {}, pool = Object.keys(tops);
+      var deg = function (id) { return Object.keys(links[id] || {}).filter(function (x) { return !seen[x]; }).length; };
+      while (order.length < pool.length) {
+        var start = pool.filter(function (id) { return !seen[id]; }).sort(function (a, b) { return deg(a) - deg(b) || nm(a).localeCompare(nm(b)); })[0];
+        for (var cur = start; cur; ) {
+          seen[cur] = 1; order.push(cur);
+          var nx = Object.keys(links[cur] || {}).filter(function (x) { return !seen[x]; }).sort(function (a, b) { return links[cur][b] - links[cur][a] || nm(a).localeCompare(nm(b)); });
+          cur = nx[0];
+        }
+      }
+      var tIdx = function (id) { var i = order.indexOf(id); return i < 0 ? order.length : i; };
+      // Columns
+      var cols = {}, list = [];
+      zs.forEach(function (z) {
+        var path = keys.map(function (k) { return state.assign[k][z.id] || ""; }), key = path.join("|");
+        if (!cols[key]) { cols[key] = { path: path, zones: [] }; list.push(cols[key]); }
+        cols[key].zones.push(z);
       });
-      var links = svgEl("g", {}, svg), labels = svgEl("g", {}, svg), nodes = svgEl("g", {}, svg);
-      for (var i = 0; i + 1 < FKEYS.length; i++) {
-        var from = FKEYS[i], to = FKEYS[i + 1];
-        var feeds = P.computeFeeders(state.zones, state.assign.MS, state.assign.HS, state.schools);
-        var inCount = {};
-        feeds.forEach(function (f) {
-          var a = pos[from + "|" + f.school.id];
-          if (!a) return;
-          f.parts.forEach(function (x, j) {
-            var b = pos[to + "|" + x.school.id];
-            if (!b || x.pct < 1) return;
-            var k = to + "|" + x.school.id; inCount[k] = (inCount[k] || 0) + 1;
-            // Spread a school's outgoing arrows down its box so their labels don't overlap
-            var n = Math.min(f.parts.length, 3), y1 = a.y + nodeH / 2 + (Math.min(j, 2) - (n - 1) / 2) * 13;
-            var y2 = b.y + nodeH / 2 + ((inCount[k] % 5) - 2) * 4;
-            var x1 = a.x + nodeW, x2 = b.x - 6, mx = (x1 + x2) / 2;
-            svgEl("path", { d: "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2,
-              fill: "none", stroke: f.school.color, "stroke-opacity": 0.55, "stroke-width": 1.5 + x.pct * 0.08 }, links);
-            svgEl("path", { d: "M" + (x2 - 1) + "," + (y2 - 5) + " L" + (x2 + 6) + "," + y2 + " L" + (x2 - 1) + "," + (y2 + 5) + " Z", fill: f.school.color, "fill-opacity": 0.8 }, links);
-            var t = svgEl("text", { x: x1 + 6, y: y1 - 3, "text-anchor": "start", "font-size": 11, "font-weight": 700, fill: "#16202b", stroke: "#fff", "stroke-width": 3, "paint-order": "stroke" }, labels);
-            t.textContent = x.pct + "%";
-          });
+      var lowKey = {};
+      list.forEach(function (c) { var l = c.path[0]; (lowKey[l] = lowKey[l] || []).push(tIdx(c.path[top])); });
+      var lk = function (l) { var a = lowKey[l]; return a.reduce(function (s, x) { return s + x; }, 0) / a.length; };
+      list.sort(function (a, b) {
+        if (a.path[0] !== b.path[0]) return lk(a.path[0]) - lk(b.path[0]) || (a.path[0] ? 0 : 1) - (b.path[0] ? 0 : 1) || nm(a.path[0]).localeCompare(nm(b.path[0]));
+        for (var i = top; i > 0; i--) if (a.path[i] !== b.path[i]) return tIdx(a.path[i]) - tIdx(b.path[i]) || nm(a.path[i]).localeCompare(nm(b.path[i]));
+        return 0;
+      });
+      // Flip a school's columns when that lines its first column up with its neighbor's last one
+      var up = function (c) { return c.path.slice(1).join("|"); };
+      for (var bs = 0, prevEnd = -1; bs < list.length; ) {
+        var be = bs; while (be + 1 < list.length && list[be + 1].path[0] === list[bs].path[0]) be++;
+        if (prevEnd >= 0 && up(list[bs]) !== up(list[prevEnd]) && up(list[be]) === up(list[prevEnd])) {
+          var blk = list.slice(bs, be + 1).reverse();
+          for (var q = 0; q < blk.length; q++) list[bs + q] = blk[q];
+        }
+        prevEnd = be; bs = be + 1;
+      }
+      var n = list.length;
+      var grid = document.createElement("div");
+      grid.className = "ftree";
+      grid.style.gridTemplateColumns = "repeat(" + n + ", minmax(100px, 1fr))";
+      box.appendChild(grid);
+      var row = 1;
+      function cell(cls, c0, c1, r, html) {
+        var d = document.createElement("div");
+        d.className = cls; d.style.gridColumn = (c0 + 1) + " / " + (c1 + 2); d.style.gridRow = String(r);
+        if (html != null) d.innerHTML = html;
+        grid.appendChild(d); return d;
+      }
+      function runs(fn) {
+        var out = [], s = 0;
+        for (var i = 1; i <= n; i++) if (i === n || fn(list[i]) !== fn(list[s])) { out.push([s, i - 1]); s = i; }
+        return out;
+      }
+      function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+      for (var li = top; li >= 0; li--) {
+        // School boxes for this level
+        runs(function (c) { return c.path[li]; }).forEach(function (r) {
+          var id = list[r[0]].path[li], sub = "";
+          if (li < top && id) {
+            var ups = {};
+            zs.forEach(function (z) { if (state.assign[keys[li]][z.id] === id && state.assign[keys[li + 1]][z.id]) ups[state.assign[keys[li + 1]][z.id]] = 1; });
+            var k = Object.keys(ups).length;
+            sub = k <= 1 ? "No split" : k + "-way split";
+          }
+          cell("fbox lv" + (top - li) + (id ? "" : " none"), r[0], r[1], row,
+            "<b>" + esc(id ? nm(id) : "No " + FEED_LEVEL_NAME(keys[li])) + "</b>" + (sub ? "<span>(" + sub + ")</span>" : ""));
         });
+        row++;
+        // Arrows from the level below (or from the building blocks) up to this level
+        runs(function (c) { return (li > 0 ? c.path[li - 1] : c.path.join("|")) + ">" + c.path[li]; }).forEach(function (r) {
+          var c0 = list[r[0]], upId = c0.path[li], fromId = li > 0 ? c0.path[li - 1] : "x";
+          if (!upId || !fromId) { cell("farw empty", r[0], r[1], row); return; }
+          var label = "";
+          if (li > 0) {
+            var all = 0, part = 0, k = keys[li], lk2 = keys[li - 1];
+            zs.forEach(function (z) {
+              if (state.assign[lk2][z.id] !== fromId) return;
+              var s = studOf(z, k); all += s;
+              if (state.assign[k][z.id] === upId) part += s;
+            });
+            var pct = all ? Math.round(part / all * 100) : 0;
+            if (pct < 100) label = "<em>" + pct + "%</em>";
+          }
+          cell("farw", r[0], r[1], row, "<i></i>" + label);
+        });
+        row++;
       }
-      Object.keys(pos).forEach(function (k) {
-        var p = pos[k], r = p.r, g = svgEl("g", {}, nodes);
-        svgEl("rect", { x: p.x, y: p.y, width: nodeW, height: nodeH, fill: "#fff", stroke: r.status === "over" ? "#c8102e" : "#d6dbe1" }, g);
-        svgEl("rect", { x: p.x, y: p.y, width: 5, height: nodeH, fill: r.school.color }, g);
-        var n = svgEl("text", { x: p.x + 13, y: p.y + 17, "font-size": 13, "font-weight": 700, fill: "#16202b" }, g);
-        n.textContent = r.school.name;
-        var sub = svgEl("text", { x: p.x + 13, y: p.y + 33, "font-size": 11, fill: r.status === "over" ? "#c8102e" : "#5d6875" }, g);
-        sub.textContent = r.students.toLocaleString() + " students · " + r.pct + "% of capacity";
+      list.forEach(function (c, i) {
+        var d = cell("fzones", i, i, row);
+        c.zones.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (z) {
+          var e = document.createElement("div"); e.textContent = z.name; d.appendChild(e);
+        });
       });
-      if (!Object.keys(pos).length) {
-        var e = svgEl("text", { x: 0, y: top + 10, "font-size": 13, fill: "#5d6875" }, svg);
-        e.textContent = "Assign " + "elementary zones" + " to schools to see feeder patterns.";
-      }
     }
     function toggleFeeders(show) {
       $("feedView").hidden = !show;
