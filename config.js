@@ -15,6 +15,14 @@ window.PLANNER_CONFIG = {
   webMapId: "",
   portalUrl: "",
 
+  // Optional: public layer of school locations, ending in /FeatureServer/0. Points are
+  // matched to the schools below by name ("Dunwoody HS" matches "Dunwoody High School"),
+  // so elementary, charter and private schools in the layer are ignored. Shows the
+  // schools on the map and lets people fill unassigned zones with the nearest school.
+  schoolPointsUrl: "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/schools/FeatureServer/0",
+  schoolPointsNameField: "",   // leave "" to find the name field automatically
+  schoolPointsWhere: "1=1",    // optional filter, e.g. "TYPE = 'Public'"
+
   // Public add-only table that receives plans, ending in /FeatureServer/0.
   // Leave empty to allow CSV download only.
   submissionsTableUrl: "",
