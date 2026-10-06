@@ -23,14 +23,14 @@ window.PLANNER_CONFIG = {
   // Lakeside and Tucker HS, plus Oakcliff for the new Sequoyah cluster).
   zoneNames: [
     // Chamblee MS / Chamblee HS
-    "Ashford Park ES", "John Lewis ES", "Huntley Hills ES", "Montgomery ES",
+    "Ashford Park ES", "John Lewis ES", "Huntley Hills ES", "Montgomery ES", // also covers Cary Reynolds, housed at Montgomery and Nancy Creek
     // Peachtree MS / Dunwoody HS and Sequoyah HS
     "Austin ES", "Chesnut ES", "Dunwoody ES", "Kingsley ES", "Vanderlyn ES", "Hightower ES",
     // Sequoyah MS / Sequoyah HS
     "Doraville United ES", "Oakcliff", "Pleasantdale ES",
     // Henderson MS / Lakeside HS and Cross Keys HS
     "Briarlake ES", "Evansdale ES", "Hawthorne ES", "Henderson Mill ES", "Oak Grove ES", "Sagamore Hills ES",
-    "Dresden ES", "Montclair ES", "Cary Reynolds ES",
+    "Dresden ES", "Montclair ES",
     // Druid Hills MS / Cross Keys HS and Druid Hills HS
     "Briar Vista ES", "Woodward ES", "Avondale ES", "Fernbank ES", "Laurel Ridge ES", "McLendon ES",
     // Tucker MS / Tucker HS
