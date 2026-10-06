@@ -24,7 +24,7 @@
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
     .btn:disabled { color: #a3abb5; cursor: default; }
     .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .btn.primary:hover:not(:disabled) { background: #18328f; }
+    .btn.primary:hover:not(:disabled) { background: #13628a; border-color: #13628a; }
     .btn.primary:disabled { background: #fff; border-color: var(--line); color: #a3abb5; }
     #legend { position: absolute; right: 20px; top: calc(100% + 6px); z-index: 20; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); padding: 10px 14px; min-width: 200px; font-size: 13px; }
     #legend[hidden] { display: none; }
@@ -84,7 +84,7 @@
     /* pop-ups */
     .dlg { position: fixed; inset: 0; background: rgba(15, 23, 32, .45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
     .dlg[hidden] { display: none; }
-    .dlg .box { background: #fff; border-top: 6px solid var(--orange); padding: 20px 22px; max-width: 420px; width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+    .dlg .box { background: #fff; padding: 20px 22px; max-width: 420px; width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
     .dlg .box.wide { max-width: 560px; }
     .dlg h2 { font-size: 28px; margin: 0 0 12px; }
     .dlg h3 { font-size: 14px; margin: 14px 0 6px; }
@@ -232,8 +232,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=17"></script>
-  <script src="planner-core.js?v=17"></script>
+  <script src="config.js?v=18"></script>
+  <script src="planner-core.js?v=18"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
