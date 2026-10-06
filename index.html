@@ -26,7 +26,9 @@
     #legend div { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
     #mapWrap { position: relative; flex: 1 1 auto; min-height: 320px; }
     #viewDiv { position: absolute; inset: 0; visibility: hidden; } /* shown once fitted to the zones */
-    .esri-view .esri-view-surface--inset-outline:focus::after { outline: none !important; }
+    /* No blue focus box around the map when it's clicked */
+    .esri-view { --esri-view-outline: none; --esri-view-outline-offset: 0; }
+    .esri-view .esri-view-surface:focus::after, .esri-view .esri-view-surface:focus-visible::after { outline: none !important; }
     #chip { position: absolute; left: 16px; bottom: 28px; z-index: 5; background: #fff; border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     #chip:empty { display: none; }
     #panel { flex: 0 0 380px; display: flex; flex-direction: column; border-left: 1px solid var(--line); border-top: 6px solid var(--accent); min-height: 0; }
@@ -63,7 +65,9 @@
     .callout strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 2px; }
     .callout.done { border-left-color: var(--ok); background: #eef8f2; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .sr { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    /* The app fills the window exactly; only the side panel scrolls (phones scroll the page) */
+    @media (min-width: 761px) { html, body { overflow: hidden; } }
     #warnings { font-size: 13px; color: var(--over); margin-bottom: 10px; line-height: 1.45; }
     #warnings:empty { display: none; }
     #warnings ul { margin: 6px 0 0; padding-left: 18px; }
@@ -196,8 +200,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=11"></script>
-  <script src="planner-core.js?v=11"></script>
+  <script src="config.js?v=12"></script>
+  <script src="planner-core.js?v=12"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
@@ -236,7 +240,7 @@
       popupEnabled: false, highlightOptions: { fillOpacity: 0, haloOpacity: 0 } });
     var layer = null;
 
-    mapReady.then(function () { return view.when(); }).catch(function () {}).then(loadZones).then(function (zones) {
+    mapReady.then(loadZones).then(function (zones) {
       state.zones = zones;
       var derived = P.deriveSchools(zones, C.schools);
       state.schools = derived.schools;
@@ -266,7 +270,8 @@
       return src.load().then(function () {
         var q = src.createQuery();
         q.where = "1=1"; q.outFields = ["*"]; q.returnGeometry = true;
-        q.outSpatialReference = view.spatialReference;
+        // Match the web map's projection when there is one
+        q.outSpatialReference = (map.initialViewProperties && map.initialViewProperties.spatialReference) || view.spatialReference;
         return src.queryFeatures(q).then(function (fs) {
           var oidField = src.objectIdField;
           return fs.features.map(function (g) {
@@ -380,11 +385,14 @@
 
     // ---------- interaction ----------
     function setLevel(level) {
+      state.brushes = state.brushes || {};
+      if (state.brush != null) state.brushes[state.level] = state.brush;
       state.level = level;
       $("tabMS").classList.toggle("active", level === "MS");
       $("tabHS").classList.toggle("active", level === "HS");
       var list = P.schoolsFor(state.schools, level);
-      state.brush = list.length ? list[0].id : "";
+      // Each tab remembers the school last picked on it
+      state.brush = state.brushes[level] != null ? state.brushes[level] : (list.length ? list[0].id : "");
       if (layer) layer.renderer = rendererFor(level);
       refreshLayer();
       renderPanel();
