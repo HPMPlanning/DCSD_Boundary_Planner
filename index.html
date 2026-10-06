@@ -240,8 +240,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=21"></script>
-  <script src="planner-core.js?v=21"></script>
+  <script src="config.js?v=22"></script>
+  <script src="planner-core.js?v=22"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
@@ -282,6 +282,8 @@
 
     mapReady.then(loadZones).then(function (zones) {
       state.zones = zones;
+      var notFound = ZONE_KEYS.filter(function (k) { return !zoneHits[k]; });
+      if (C.zonesLayerUrl && notFound.length) console.warn("zoneNames with no matching zone: " + notFound.join(", "));
       var derived = P.deriveSchools(zones, C.schools);
       state.schools = derived.schools;
       if (derived.errors.length) {
@@ -325,9 +327,20 @@
               curMs: a[F.currentMs], curHs: a[F.currentHs],
               geometry: g.geometry
             };
-          }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+          }).filter(keepZone).sort(function (a, b) { return a.name.localeCompare(b.name); });
         });
       });
+    }
+
+    // Optional list of zone names to load (config zoneNames); a name matches a zone whose name contains it
+    function zkey(t) { return String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+    var ZONE_KEYS = (C.zoneNames || []).map(zkey);
+    var zoneHits = {};
+    function keepZone(z) {
+      if (!ZONE_KEYS.length) return true;
+      var n = " " + zkey(z.name) + " ", hit = ZONE_KEYS.filter(function (k) { return n.indexOf(" " + k + " ") >= 0; })[0];
+      if (hit) zoneHits[hit] = true;
+      return !!hit;
     }
 
     function showMap() { $("viewDiv").style.visibility = "visible"; }
