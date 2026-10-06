@@ -1,7 +1,7 @@
 // Boundary Planner settings.
 // Leave zonesLayerUrl empty to run with built-in demo zones.
 window.PLANNER_CONFIG = {
-  title: "Middle and High School Boundary Planner",
+  title: "Community Boundary Builder",
   intro:
     "Pick a school, then click elementary zones on the map to assign them. " +
     "Double-click a zone to unassign it.",

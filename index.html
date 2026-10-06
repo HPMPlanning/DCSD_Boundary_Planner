@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Boundary Planner</title>
+  <title>Community Boundary Builder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Carlito:wght@400;700&display=swap">
@@ -17,7 +17,8 @@
     .serif { font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-weight: 400; letter-spacing: .02em; }
     #app { display: flex; height: 100%; }
     #mapCol { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
-    #mapHead { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 4px solid var(--orange); background: #fff; }
+    #mapHead { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: #fff; }
+    #logo { height: 36px; width: auto; flex: 0 0 auto; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
     #mapHead h1 { flex: 1; margin: 0; font-size: 28px; line-height: 1.1; }
     .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 2px; cursor: pointer; font-size: 14px; }
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
@@ -130,6 +131,7 @@
     details.feeders summary { cursor: pointer; font-weight: 700; font-size: 15px; }
     details.feeders .note { font-size: 12px; color: var(--muted); margin: 6px 0 2px; }
     @media (max-width: 560px) { .cols { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { #logo { height: 24px; padding-right: 10px; } #mapHead h1 { font-size: 22px; } }
     label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
     input, textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 2px; font: inherit; font-size: 14px; }
     textarea { min-height: 80px; resize: vertical; }
@@ -154,6 +156,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
+        <img id="logo" src="dcsd-logo.svg" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="feedBtn" class="btn" aria-pressed="false">Feeder patterns</button>
         <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend">Map legend</button>
@@ -227,8 +230,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=15"></script>
-  <script src="planner-core.js?v=15"></script>
+  <script src="config.js?v=16"></script>
+  <script src="planner-core.js?v=16"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
