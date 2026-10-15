@@ -34,6 +34,17 @@
     /* No blue focus box around the map when it's clicked */
     .esri-view { --esri-view-outline: none; --esri-view-outline-offset: 0; }
     .esri-view .esri-view-surface:focus::after, .esri-view .esri-view-surface:focus-visible::after { outline: none !important; }
+    #addr { position: absolute; top: 64px; right: 15px; z-index: 6; width: 270px; max-width: calc(100% - 30px); background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.12); padding: 10px 12px 8px; font-size: 13px; }
+    #addr[hidden] { display: none; }
+    #addr .ah { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+    #addr .ah b { font-size: 13px; }
+    #addr .ah button { border: 0; background: none; font-size: 18px; line-height: 1; cursor: pointer; color: var(--muted); padding: 0 2px; }
+    #addr .ar { display: grid; grid-template-columns: 92px 1fr; gap: 6px; padding: 4px 0; border-top: 1px solid #eef0f3; align-items: center; }
+    #addr .ar span:first-child { color: var(--muted); }
+    #addr .ar span:last-child { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+    #addr .ar .swatch { width: 10px; height: 10px; flex: 0 0 10px; }
+    #addr .ar em { font-style: normal; font-weight: 400; color: var(--muted); }
+    #addr p { margin: 0; color: var(--muted); }
     #chip { position: absolute; left: 16px; bottom: 28px; z-index: 5; background: #fff; border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     #chip:empty { display: none; }
     #panel { flex: 0 0 380px; display: flex; flex-direction: column; border-left: 1px solid var(--line); min-height: 0; }
@@ -175,6 +186,7 @@
       <div id="mapWrap">
         <div id="viewDiv" aria-label="Map of elementary zones"></div>
         <div id="chip" aria-hidden="true"></div>
+        <div id="addr" role="status" hidden></div>
         <div id="feedView" hidden>
           <div class="fhead"><h2 class="serif">Feeder patterns</h2></div>
           <p class="note" id="feedNote"></p>
@@ -240,14 +252,15 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=25"></script>
-  <script src="planner-core.js?v=25"></script>
+  <script src="config.js?v=26"></script>
+  <script src="planner-core.js?v=26"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
     "esri/Map", "esri/WebMap", "esri/config", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic",
-    "esri/geometry/Polygon", "esri/request"
-  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest) {
+    "esri/geometry/Polygon", "esri/request", "esri/widgets/Search",
+    "esri/geometry/support/webMercatorUtils"
+  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest, Search, wmUtils) {
     var C = window.PLANNER_CONFIG, P = window.PlannerCore, F = C.fields;
     // Projected enrollment is shown only when the layer has projected fields (always in demo mode)
     var FRAMED = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
@@ -300,6 +313,7 @@
       buildLayer();
       setLevel("MS");
       loadSchoolPoints();
+      setupSearch();
     }).catch(function (e) {
       showMap();
       $("warnings").textContent = "The zones layer could not be loaded. " + (e && e.message ? e.message : "");
@@ -379,6 +393,62 @@
     }
 
     // ---------- map ----------
+    // ---------- address search ----------
+    // Esri's address search; the card shows the address's elementary zone and the
+    // middle and high school that zone has in the current plan
+    var lookup = null;
+    function setupSearch() {
+      var search = new Search({ view: view, popupEnabled: false, locationEnabled: false, includeDefaultSources: true, allPlaceholder: "Find your address" });
+      search.when(function () {
+        search.allSources.forEach(function (src) { src.placeholder = "Find your address"; });
+      });
+      view.ui.add(search, "top-right");
+      search.on("select-result", function (e) {
+        var pt = e.result && e.result.feature && e.result.feature.geometry;
+        if (!pt || !layer) return;
+        // Put the address in the zones' coordinate system before testing which zone holds it
+        var lsr = layer.spatialReference;
+        if (pt.spatialReference && lsr && !pt.spatialReference.equals(lsr) && wmUtils.canProject(pt, lsr)) pt = wmUtils.project(pt, lsr);
+        var q = layer.createQuery();
+        q.geometry = pt; q.spatialRelationship = "intersects"; q.returnGeometry = false; q.outFields = ["zone_id", "name"];
+        layer.queryFeatures(q).then(function (r) {
+          var f = r.features[0];
+          lookup = { label: e.result.name, zoneId: f ? f.attributes.zone_id : null, zone: f ? f.attributes.name : null };
+          renderLookup();
+        });
+      });
+      search.on("search-clear", function () { lookup = null; renderLookup(); });
+    }
+    function renderLookup() {
+      var box = $("addr");
+      if (!lookup) { box.hidden = true; return; }
+      box.hidden = false; box.innerHTML = "";
+      var head = document.createElement("div"); head.className = "ah";
+      var t = document.createElement("b"); t.textContent = lookup.label || "Your address"; head.appendChild(t);
+      var x = document.createElement("button"); x.type = "button"; x.setAttribute("aria-label", "Close"); x.textContent = "\u00d7";
+      x.onclick = function () { lookup = null; renderLookup(); };
+      head.appendChild(x); box.appendChild(head);
+      if (!lookup.zoneId) {
+        var p = document.createElement("p"); p.textContent = "This address is outside the area this plan covers."; box.appendChild(p); return;
+      }
+      function row(label, id, text) {
+        var r = document.createElement("div"); r.className = "ar";
+        var a = document.createElement("span"); a.textContent = label;
+        var b = document.createElement("span");
+        if (id) {
+          var sw = document.createElement("span"); sw.className = "swatch";
+          var sc = state.schools.filter(function (s) { return s.id === id; })[0];
+          sw.style.background = sc ? sc.color : "#ccc"; b.appendChild(sw);
+          b.appendChild(document.createTextNode(nameOf(id)));
+        } else if (text) b.appendChild(document.createTextNode(text));
+        else { var em = document.createElement("em"); em.textContent = "Not assigned yet"; b.appendChild(em); }
+        r.appendChild(a); r.appendChild(b); box.appendChild(r);
+      }
+      row("Elementary", null, lookup.zone);
+      row("Middle school", state.assign.MS[lookup.zoneId]);
+      row("High school", state.assign.HS[lookup.zoneId]);
+    }
+
     // ---------- school points ----------
     // Optional school locations: matched to the planner's schools by name, so other
     // schools in the layer (elementary, charter, private) are ignored. Used to draw
@@ -644,6 +714,7 @@
       renderFeeders($("feedList"));
       if (!$("feedView").hidden) drawFeederDiagram();
       renderLegend();
+      renderLookup();
     }
 
     // One line per middle school: the share of its students going to each high school
