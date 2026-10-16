@@ -291,8 +291,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=33"></script>
-  <script src="planner-core.js?v=33"></script>
+  <script src="config.js?v=34"></script>
+  <script src="planner-core.js?v=34"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -808,7 +808,7 @@
           st.setAttribute("aria-label", "Hosts " + hosted.map(function (z) { return programLabel(z); }).join(", "));
           b.querySelector(".nm").after(st);
         }
-        b.querySelector(".seats").textContent = (extra ? (r.students - extra).toLocaleString() + "+" + extra.toLocaleString() : r.students.toLocaleString()) + " / " + r.capacity.toLocaleString();
+        b.querySelector(".seats").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
         var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
         b.appendChild(capBar(r.school.color, r.students - extra, extra, r.capacity, false));
         if (HAS_PROJ) b.appendChild(meter("Projected", rp));
