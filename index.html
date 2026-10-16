@@ -281,8 +281,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=41"></script>
-  <script src="planner-core.js?v=41"></script>
+  <script src="config.js?v=42"></script>
+  <script src="planner-core.js?v=42"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -298,9 +298,9 @@
   <script>
   require([
     "esri/Map", "esri/WebMap", "esri/config", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic",
-    "esri/geometry/Polygon", "esri/request",
+    "esri/geometry/Polygon", "esri/request", "esri/geometry/geometryEngine",
     "esri/identity/OAuthInfo", "esri/identity/IdentityManager"
-  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest, OAuthInfo, esriId) {
+  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest, geometryEngine, OAuthInfo, esriId) {
     if (window.PLANNER_OFF) return;
     var C = window.PLANNER_CONFIG, P = window.PlannerCore, F = C.fields;
     // Testing a private layer: index.html?zones=<layer URL> loads that layer instead.
@@ -550,7 +550,7 @@
             var hits = {};
             state.schools.forEach(function (s) { var m = matchPoint(s, names); if (m) hits[s.id] = m.g; });
             var n = Object.keys(hits).length;
-            if (!best || n > best.n) best = { n: n, hits: hits };
+            if (!best || n > best.n) best = { n: n, hits: hits, fld: fld };
           });
           if (!best || !best.n) {
             // A filter that matches nothing is retried without it
@@ -577,12 +577,31 @@
               symbol: { type: "text", color: "#231e1f", haloColor: "#ffffff", haloSize: 2, font: { size: 11, weight: "bold" } } }]
           });
           map.add(ptsLayer);
+          addElementaryPoints(fs.features, best.fld);
           renderPanel();
         });
       }).catch(function (e) {
         if (where !== "1=1") return loadSchoolPoints("1=1");
         console.error("School points could not be loaded", e);
       });
+    }
+    // Elementary school locations inside the planner's zones: plain black dots, no labels
+    // (the zones are already labeled)
+    function addElementaryPoints(features, fld) {
+      var zones = mapZones();
+      var pts = features.filter(function (g) {
+        var a = g.attributes, grade = String(a.Grade || a.GRADE || a.Grades || "");
+        var isEs = normName(a[fld]).split(" ").indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade);
+        return isEs && g.geometry && zones.some(function (z) { return geometryEngine.contains(z.geometry, g.geometry); });
+      });
+      if (!pts.length) return;
+      var esLayer = new FeatureLayer({
+        source: pts.map(function (g, i) { return new Graphic({ geometry: g.geometry, attributes: { oid: i + 1 } }); }),
+        objectIdField: "oid", geometryType: "point", spatialReference: pts[0].geometry.spatialReference,
+        fields: [{ name: "oid", type: "oid" }], title: "Elementary schools", popupEnabled: false,
+        renderer: { type: "simple", symbol: { type: "simple-marker", style: "circle", size: 7, color: "#231e1f", outline: { color: "#ffffff", width: 1 } } }
+      });
+      map.add(esLayer, map.layers.indexOf(ptsLayer));
     }
     function centerOf(z) {
       var g = z.geometry;
