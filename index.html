@@ -291,8 +291,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=34"></script>
-  <script src="planner-core.js?v=34"></script>
+  <script src="config.js?v=35"></script>
+  <script src="planner-core.js?v=35"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -872,7 +872,7 @@
     function programCard(z, rows) {
       var host = state.assign[state.level][z.id] || "";
       var c = document.createElement("label"); c.className = "hacard";
-      c.innerHTML = '<span class="hahead"><span class="star" aria-hidden="true">\u2605</span><span class="nm"></span><span class="hhost"></span>' +
+      c.innerHTML = '<span class="hahead"><span class="nm"></span><span class="hhost"></span>' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3d3a35" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><select></select>';
       c.querySelector(".nm").textContent = programLabel(z);
       var hh = c.querySelector(".hhost");
