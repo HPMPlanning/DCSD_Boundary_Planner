@@ -171,6 +171,18 @@
     }
     #uc { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; box-sizing: border-box; color: var(--ink); font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; }
     #uc[hidden] { display: none; }
+    #programs { margin-top: 8px; }
+    #programs .note { margin: 0 0 4px; font-size: 13px; }
+    .pmark { color: var(--ink); }
+    .pmark.big { width: 12px; flex: 0 0 12px; text-align: center; font-size: 14px; line-height: 12px; }
+    .school.progcard { position: relative; border-style: dashed; }
+    .school.progcard .phost { font-size: 12px; color: var(--accent); margin: 2px 0 0 20px; }
+    .school.progcard select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .school .pstar { font-size: 16px; line-height: 1; color: #a3abb5; padding: 0 2px; margin-left: 2px; cursor: pointer; }
+    .school .pstar:hover { color: var(--orange); }
+    .school .pstar.on { color: var(--orange); }
+    .fbox .fstar { font-style: normal; margin-left: 4px; }
+    #feedView .fkey { margin: -4px 0 10px; }
     #uc img { height: 56px; width: auto; margin-bottom: 18px; }
     #uc h1 { margin: 0; font-size: 30px; font-weight: 400; }
     #uc .uc-tag { margin: 14px 0 6px; font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-size: 28px; letter-spacing: .04em; color: var(--accent); }
@@ -196,6 +208,7 @@
         <div id="feedView" hidden>
           <div class="fhead"><h2 class="serif">Feeder patterns</h2></div>
           <p class="note" id="feedNote"></p>
+          <p class="note fkey" id="feedKey" hidden><span class="pmark">★</span> High Achievers program location</p>
           <div id="feedTree" role="img" aria-label="Feeder pattern tree"></div>
           <div id="feedList" class="feeders sr"></div>
         </div>
@@ -212,6 +225,7 @@
         <div class="sechead"><h2>Choose a school</h2><span id="schoolCount"></span></div>
         <div id="schools"></div>
         <div id="unassigned" class="callout"></div>
+        <div id="programs" hidden></div>
         <div id="last" class="sr" role="status"></div>
         <div class="actions" id="tools">
           <button id="undoBtn" class="btn">Undo</button>
@@ -258,8 +272,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=30"></script>
-  <script src="planner-core.js?v=30"></script>
+  <script src="config.js?v=31"></script>
+  <script src="planner-core.js?v=31"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -322,6 +336,7 @@
 
     mapReady.then(loadZones).then(function (zones) {
       state.zones = zones;
+      markPrograms(zones);
       var notFound = ZONE_KEYS.filter(function (k) { return !zoneHits[k]; });
       if (C.zonesLayerUrl && notFound.length) console.warn("zoneNames with no matching zone: " + notFound.join(", "));
       var derived = P.deriveSchools(zones, C.schools);
@@ -410,6 +425,30 @@
       return String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\b(es|elementary|school)\b/g, " ").replace(/\s+/g, " ").trim();
     }
     var ZONE_KEYS = (C.zoneNames || []).map(zkey);
+
+    // Programs (config programs) are drawn on the layer as stand-in zones; they stay off the map
+    // and are hosted by a school picked in the side panel, counting only at their own level
+    var PROGRAMS = (C.programs || []).map(function (p) { return { key: zkey(p.name), level: p.level }; });
+    function markPrograms(zones) {
+      zones.forEach(function (z) {
+        var n = " " + zkey(z.name) + " ", p = PROGRAMS.filter(function (x) { return n.indexOf(" " + x.key + " ") >= 0; })[0];
+        if (!p) return;
+        z.program = p.level;
+        if (p.level === "MS") { z.hsC = 0; z.hsP = 0; } else { z.msC = 0; z.msP = 0; }
+      });
+    }
+    function mapZones() { return state.zones.filter(function (z) { return !z.program; }); }
+    function programsFor(level) { return state.zones.filter(function (z) { return z.program === level; }); }
+    // School totals for a level; a program nobody has picked a host for isn't counted as an unassigned zone
+    function totalsFor(level, basis) {
+      var key = (level === "MS" ? "ms" : "hs") + (basis === "P" ? "P" : "C");
+      var t = P.computeTotals(state.zones.filter(function (z) { return !z.program || z.program === level; }), state.assign[level], state.schools, level, basis);
+      programsFor(level).forEach(function (z) {
+        if (state.assign[level][z.id]) return;
+        t.unassigned.zones--; t.unassigned.students -= Number(z[key]) || 0;
+      });
+      return t;
+    }
     var zoneHits = {};
     function keepZone(z) {
       if (!ZONE_KEYS.length) return true;
@@ -595,7 +634,7 @@
       var list = P.schoolsFor(state.schools, state.level).filter(function (s) { return s.point; });
       if (!list.length) return;
       var a = state.assign[state.level], batch = [];
-      state.zones.forEach(function (z) {
+      mapZones().forEach(function (z) {
         if (a[z.id]) return;
         var c = centerOf(z), best = null, bd = Infinity;
         list.forEach(function (s) { var dx = s.point.x - c.x, dy = s.point.y - c.y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = s; } });
@@ -609,7 +648,7 @@
     }
 
     function buildLayer() {
-      var graphics = state.zones.map(function (z, i) {
+      var graphics = mapZones().map(function (z, i) {
         z.oid = i + 1;
         return new Graphic({ geometry: z.geometry, attributes: { oid: z.oid, zone_id: z.id, name: z.name, now_n: 0, proj_n: 0, assigned: "" } });
       });
@@ -660,9 +699,10 @@
     function refreshLayer(onlyZoneId) {
       if (!layer) return;
       var key = state.level === "MS" ? "ms" : "hs", a = state.assign[state.level];
-      var updates = state.zones.filter(function (z) { return !onlyZoneId || z.id === onlyZoneId; }).map(function (z) {
+      var updates = mapZones().filter(function (z) { return !onlyZoneId || z.id === onlyZoneId; }).map(function (z) {
         return new Graphic({ attributes: { oid: z.oid, now_n: z[key + "C"], proj_n: z[key + "P"], assigned: a[z.id] || "" } });
       });
+      if (!updates.length) return;
       layer.applyEdits({ updateFeatures: updates });
     }
 
@@ -720,10 +760,11 @@
     }
 
     function renderPanel() {
-      var tc = P.computeTotals(state.zones, state.assign[state.level], state.schools, state.level, "C");
-      var tp = P.computeTotals(state.zones, state.assign[state.level], state.schools, state.level, "P");
+      var tc = totalsFor(state.level, "C");
+      var tp = totalsFor(state.level, "P");
       var box = $("schools");
       box.innerHTML = "";
+      var progs = programsFor(state.level);
       tc.rows.forEach(function (r, i) {
         var rp = tp.rows[i];
         var b = document.createElement("button");
@@ -732,6 +773,7 @@
         b.querySelector(".swatch").style.background = r.school.color;
         b.querySelector(".name").textContent = r.school.name;
         b.querySelector(".cap").textContent = r.capacity.toLocaleString() + " seats";
+        var hosted = programsFor(state.level).filter(function (z) { return state.assign[state.level][z.id] === r.school.id; });
         if (HAS_PROJ) { b.appendChild(meter("Current", r)); b.appendChild(meter("Projected", rp)); }
         else {
           // One line per school: students / seats and the percent, with the bar underneath
@@ -742,9 +784,22 @@
           b.appendChild(m.querySelector(".bar"));
         }
         b.title = r.zones + " zones";
+        if (PROG_STYLE === "tag" && progs.length) {
+          // A star on every row; the filled one marks the program's host, a click moves it here
+          var st = document.createElement("span");
+          st.className = "pstar" + (hosted.length ? " on" : "");
+          st.textContent = hosted.length ? "\u2605" : "\u2606";
+          st.title = hosted.length ? progs[0].name + " is hosted here. Click to remove it." : "Host " + progs[0].name + " here";
+          st.onclick = function (ev) { ev.stopPropagation(); assignZone(progs[0].id, hosted.length ? "" : r.school.id); };
+          b.querySelector(".top").appendChild(st);
+        } else if (hosted.length) {
+          var mk = document.createElement("span"); mk.className = "pmark"; mk.textContent = " \u2605"; mk.title = "Hosts " + hosted.map(function (z) { return z.name; }).join(", ");
+          b.querySelector(".name").appendChild(mk);
+        }
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
         box.appendChild(b);
       });
+      if (PROG_STYLE !== "tag") progs.forEach(function (z) { box.appendChild(programCard(z)); });
       var e = document.createElement("button");
       e.className = "school unassign" + (state.brush === "" ? " selected" : "");
       e.innerHTML = '<div class="top"><span class="swatch none"></span><span class="name">Unassign</span></div>';
@@ -765,6 +820,8 @@
         un.appendChild(fb);
       }
 
+      renderPrograms();
+
       var chip = $("chip");
       chip.innerHTML = "";
       if (state.brush != null) {
@@ -778,10 +835,44 @@
       renderLookup();
     }
 
+    // How programs are picked: "card" (a card in the school list with a host dropdown) or
+    // "tag" (a star on each school row); ?progstyle= in the address overrides it for previews
+    var PROG_STYLE = new URLSearchParams(location.search).get("progstyle") || C.programStyle || "card";
+    function progStudents(z) { return Number(z.program === "MS" ? z.msC : z.hsC) || 0; }
+    function programCard(z) {
+      var host = state.assign[state.level][z.id] || "";
+      var c = document.createElement("label");
+      c.className = "school progcard";
+      c.innerHTML = '<div class="top"><span class="pmark big">\u2605</span><span class="name"></span><span class="cap"></span></div><div class="phost"></div><select></select>';
+      c.querySelector(".name").textContent = z.name;
+      c.querySelector(".cap").textContent = progStudents(z).toLocaleString() + " students";
+      c.querySelector(".phost").textContent = host ? "Host: " + nameOf(host) + " \u25BE" : "Pick a host school \u25BE";
+      var sel = c.querySelector("select");
+      sel.setAttribute("aria-label", "Host school for " + z.name);
+      [{ id: "", name: "No host yet" }].concat(P.schoolsFor(state.schools, state.level)).forEach(function (sc) {
+        var o = document.createElement("option"); o.value = sc.id; o.textContent = sc.name; sel.appendChild(o);
+      });
+      sel.value = host;
+      sel.onchange = function () { assignZone(z.id, sel.value); };
+      return c;
+    }
+    function renderPrograms() {
+      var box = $("programs"), list = programsFor(state.level);
+      box.innerHTML = "";
+      box.hidden = !(PROG_STYLE === "tag" && list.length);
+      if (box.hidden) return;
+      list.forEach(function (z) {
+        var p = document.createElement("p"); p.className = "note";
+        p.innerHTML = '<span class="pmark">\u2605</span> <b></b> (' + progStudents(z).toLocaleString() + " students): click a school's star to host it.";
+        p.querySelector("b").textContent = z.name;
+        box.appendChild(p);
+      });
+    }
+
     // One line per middle school: the share of its students going to each high school
     function renderFeeders(box) {
       box.innerHTML = "";
-      var rows = P.computeFeeders(state.zones, state.assign.MS, state.assign.HS, state.schools);
+      var rows = P.computeFeeders(mapZones(), state.assign.MS, state.assign.HS, state.schools);
       if (!rows.length) {
         var p = document.createElement("p"); p.className = "note";
         p.textContent = "Assign zones to middle and high schools to see feeder patterns.";
@@ -810,9 +901,11 @@
       var keys = FKEYS, top = keys.length - 1;
       var byId = {};
       state.schools.forEach(function (s) { byId[s.id] = s; });
-      var zs = state.zones.filter(function (z) { return keys.some(function (k) { return state.assign[k][z.id]; }); });
-      var left = state.zones.length - zs.length;
-      $("feedNote").textContent = "Percentages show how a split school's students divide." + (left ? " " + left + " of " + state.zones.length + " " + FEED_UNITS + " are not assigned yet and are left out." : "");
+      var mz = mapZones();
+      $("feedKey").hidden = !state.zones.some(function (z) { return z.program; });
+      var zs = mz.filter(function (z) { return keys.some(function (k) { return state.assign[k][z.id]; }); });
+      var left = mz.length - zs.length;
+      $("feedNote").textContent = "Percentages show how a split school's students divide." + (left ? " " + left + " of " + mz.length + " " + FEED_UNITS + " are not assigned yet and are left out." : "");
       if (!zs.length) { box.textContent = "Assign " + FEED_UNITS + " to schools to see feeder patterns."; return; }
       // Order top-level schools so ones sharing a lower school sit side by side
       var low = keys[0], topK = keys[top], links = {}, tops = {};
@@ -889,7 +982,10 @@
             sub = k <= 1 ? "No split" : k + "-way split";
           }
           cell("fbox lv" + (top - li) + (id ? "" : " none"), r[0], r[1], row,
-            "<b>" + esc(id ? nm(id) : "No " + FEED_LEVEL_NAME(keys[li])) + "</b>" + (sub ? "<span>(" + sub + ")</span>" : ""));
+            "<b>" + esc(id ? nm(id) : "No " + FEED_LEVEL_NAME(keys[li])) +
+            (id ? programsFor(keys[li]).filter(function (z) { return state.assign[keys[li]][z.id] === id; })
+              .map(function (z) { return '<i class="fstar" title="' + esc(z.name) + '">\u2605</i>'; }).join("") : "") +
+            "</b>" + (sub ? "<span>(" + sub + ")</span>" : ""));
         });
         row++;
         // Arrows from the level below (or from the building blocks) up to this level
@@ -1015,10 +1111,10 @@
     // ---------- submit ----------
     function submitPlan() {
       if (state.submitted) return;
-      var tm = P.computeTotals(state.zones, state.assign.MS, state.schools, "MS", "C");
-      var th = P.computeTotals(state.zones, state.assign.HS, state.schools, "HS", "C");
-      var tmp = P.computeTotals(state.zones, state.assign.MS, state.schools, "MS", "P");
-      var thp = P.computeTotals(state.zones, state.assign.HS, state.schools, "HS", "P");
+      var tm = totalsFor("MS", "C");
+      var th = totalsFor("HS", "C");
+      var tmp = totalsFor("MS", "P");
+      var thp = totalsFor("HS", "P");
       if (tm.unassigned.zones || th.unassigned.zones) return;
       // A school counts as over if it is over capacity now or projected
       var allNow = tm.rows.concat(th.rows), allProj = tmp.rows.concat(thp.rows);
@@ -1071,8 +1167,8 @@
       box.innerHTML = '<div class="plan"><div class="cols"></div></div><div class="plan"><h3>Feeder patterns</h3><div class="feeders"></div></div>';
       var cols = box.querySelector(".cols"), open = [];
       ["MS", "HS"].forEach(function (level) {
-        var tc = P.computeTotals(state.zones, state.assign[level], state.schools, level, "C");
-        var tp = P.computeTotals(state.zones, state.assign[level], state.schools, level, "P");
+        var tc = totalsFor(level, "C");
+        var tp = totalsFor(level, "P");
         var col = document.createElement("div");
         var h = document.createElement("h3"); h.textContent = level === "MS" ? "Middle schools" : "High schools";
         col.appendChild(h);
