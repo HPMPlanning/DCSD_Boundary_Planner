@@ -171,16 +171,44 @@
     }
     #uc { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; box-sizing: border-box; color: var(--ink); font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; }
     #uc[hidden] { display: none; }
-    #programs { margin-top: 8px; }
-    #programs .note { margin: 0 0 4px; font-size: 13px; }
     .pmark { color: var(--ink); }
-    .pmark.big { width: 12px; flex: 0 0 12px; text-align: center; font-size: 14px; line-height: 12px; }
-    .school.progcard { position: relative; border-style: dashed; }
-    .school.progcard .phost { font-size: 12px; color: var(--accent); margin: 2px 0 0 20px; }
-    .school.progcard select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-    .school .pstar { font-size: 16px; line-height: 1; color: #a3abb5; padding: 0 2px; margin-left: 2px; cursor: pointer; }
-    .school .pstar:hover { color: var(--orange); }
-    .school .pstar.on { color: var(--orange); }
+    .slist { display: flex; flex-direction: column; gap: 1px; background: #e2dfd8; border: 1px solid #c9c5bc; border-radius: 3px; overflow: hidden; }
+    .srow, .haopt { display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box; min-height: 40px; text-align: left; padding: 7px 10px 5px; border: 0; border-radius: 0; background: #fff; cursor: pointer; font: inherit; color: var(--ink); }
+    .srow:hover, .haopt:hover { background: #f7f6f2; }
+    .r1 { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .r1 .sw, .sw { width: 11px; height: 11px; flex: none; }
+    .sw.sm { width: 9px; height: 9px; }
+    .sw.none { border: 1px solid #8a867d; box-sizing: border-box; background: repeating-linear-gradient(135deg, #8a867d 0 1.5px, #fff 1.5px 4px); }
+    .r1 .nm { font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .star { font-size: 14px; line-height: 1; color: #d98a00; }
+    .r1 .seats { flex: 1; min-width: 0; text-align: right; font-size: 12px; color: #5e5b55; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .r1 .seats.over { color: var(--over); }
+    .r1 .pc { width: 56px; flex: none; text-align: right; font-size: 13px; font-weight: 700; color: var(--ok); font-variant-numeric: tabular-nums; }
+    .r1 .pc.over { color: var(--over); }
+    .cbar { position: relative; display: block; height: 9px; width: 100%; }
+    .cbar .trk { position: absolute; left: 0; right: 0; top: 2px; height: 5px; background: #eceae4; overflow: hidden; display: flex; }
+    .cbar .trk span { height: 100%; }
+    .cbar .capm { position: absolute; left: 66.67%; top: 0; width: 2px; height: 9px; background: var(--ink); }
+    .cbar.sm { height: 7px; } .cbar.sm .trk { height: 3px; } .cbar.sm .capm { width: 1.5px; height: 7px; }
+    .hacard { margin-top: 8px; border: 1px solid #c9c5bc; border-radius: 3px; overflow: hidden; background: #fff; }
+    .hacard.open { border-color: var(--ink); }
+    .hahead { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; min-height: 42px; text-align: left; padding: 10px; border: 0; background: #fff; cursor: pointer; font: inherit; color: var(--ink); }
+    .hacard.open .hahead { background: #f5f4f0; }
+    .hahead .star { width: 11px; flex: none; text-align: center; }
+    .hahead .nm { font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .hhost { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 13px; white-space: nowrap; }
+    .hhost.none { color: #6b6862; }
+    .hahead svg { flex: none; }
+    .hacard.open .hahead svg { transform: rotate(180deg); }
+    .halist { display: flex; flex-direction: column; gap: 1px; background: #e2dfd8; border-top: 1px solid #c9c5bc; }
+    .hanote { padding: 6px 10px; background: #f5f4f0; font-size: 11px; color: #5e5b55; }
+    .haopt { gap: 5px; padding: 8px 10px 7px; }
+    .haopt .nm { font-size: 13px; }
+    .haopt.none { min-height: 40px; justify-content: center; }
+    .haopt.none .nm { font-weight: 400; color: #3d3a35; }
+    .haopt.none.on { box-shadow: inset 0 0 0 2px #8a867d; background: #f2f0eb; }
+    .unas { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; min-height: 40px; margin-top: 8px; padding: 8px 10px; border-radius: 3px; border: 1px dashed #b5b1a8; background: #fff; cursor: pointer; font: inherit; font-size: 14px; color: #3d3a35; text-align: left; }
+    .unas.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
     .fbox .fstar { font-style: normal; margin-left: 4px; }
     #feedView .fkey { margin: -4px 0 10px; }
     #uc img { height: 56px; width: auto; margin-bottom: 18px; }
@@ -225,7 +253,6 @@
         <div class="sechead"><h2>Choose a school</h2><span id="schoolCount"></span></div>
         <div id="schools"></div>
         <div id="unassigned" class="callout"></div>
-        <div id="programs" hidden></div>
         <div id="last" class="sr" role="status"></div>
         <div class="actions" id="tools">
           <button id="undoBtn" class="btn">Undo</button>
@@ -428,7 +455,7 @@
 
     // Programs (config programs) are drawn on the layer as stand-in zones; they stay off the map
     // and are hosted by a school picked in the side panel, counting only at their own level
-    var PROGRAMS = (C.programs || []).map(function (p) { return { key: zkey(p.name), level: p.level }; });
+    var PROGRAMS = (C.programs || []).map(function (p) { return { key: zkey(p.name), level: p.level, label: p.label }; });
     function markPrograms(zones) {
       zones.forEach(function (z) {
         var n = " " + zkey(z.name) + " ", p = PROGRAMS.filter(function (x) { return n.indexOf(" " + x.key + " ") >= 0; })[0];
@@ -764,45 +791,38 @@
       var tp = totalsFor(state.level, "P");
       var box = $("schools");
       box.innerHTML = "";
-      var progs = programsFor(state.level);
+      var progs = programsFor(state.level), lvlName = state.level === "MS" ? "middle" : "high";
+      var list = document.createElement("div"); list.className = "slist"; list.setAttribute("role", "list");
       tc.rows.forEach(function (r, i) {
-        var rp = tp.rows[i];
+        var rp = tp.rows[i], hosted = progs.filter(function (z) { return state.assign[state.level][z.id] === r.school.id; });
+        var extra = hosted.reduce(function (t, z) { return t + progStudents(z); }, 0);
         var b = document.createElement("button");
-        b.className = "school" + (state.brush === r.school.id ? " selected" : "");
-        b.innerHTML = '<div class="top"><span class="swatch"></span><span class="name"></span><span class="cap"></span></div>';
-        b.querySelector(".swatch").style.background = r.school.color;
-        b.querySelector(".name").textContent = r.school.name;
-        b.querySelector(".cap").textContent = r.capacity.toLocaleString() + " seats";
-        var hosted = programsFor(state.level).filter(function (z) { return state.assign[state.level][z.id] === r.school.id; });
-        if (HAS_PROJ) { b.appendChild(meter("Current", r)); b.appendChild(meter("Projected", rp)); }
-        else {
-          // One line per school: students / seats and the percent, with the bar underneath
-          var m = meter("Students", r);
-          b.querySelector(".cap").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString() + " seats";
-          var pc = m.querySelector(".pct"); b.className += " st-" + r.status;
-          b.querySelector(".top").appendChild(pc);
-          b.appendChild(m.querySelector(".bar"));
+        b.type = "button"; b.className = "srow"; b.setAttribute("role", "listitem");
+        b.setAttribute("aria-pressed", String(state.brush === r.school.id));
+        if (state.brush === r.school.id) { b.style.boxShadow = "inset 0 0 0 2px " + r.school.color; b.style.background = cssRgba(r.school.color, 0.1); }
+        b.innerHTML = '<span class="r1"><span class="sw"></span><span class="nm"></span><span class="seats"></span><span class="pc"></span></span>';
+        b.querySelector(".sw").style.background = r.school.color;
+        b.querySelector(".nm").textContent = r.school.name;
+        if (hosted.length) {
+          var st = document.createElement("span"); st.className = "star"; st.textContent = "\u2605";
+          st.setAttribute("aria-label", "Hosts " + hosted.map(function (z) { return programLabel(z); }).join(", "));
+          b.querySelector(".nm").after(st);
         }
+        b.querySelector(".seats").textContent = (extra ? (r.students - extra).toLocaleString() + "+" + extra.toLocaleString() : r.students.toLocaleString()) + " / " + r.capacity.toLocaleString();
+        var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
+        b.appendChild(capBar(r.school.color, r.students - extra, extra, r.capacity, false));
+        if (HAS_PROJ) b.appendChild(meter("Projected", rp));
         b.title = r.zones + " zones";
-        if (PROG_STYLE === "tag" && progs.length) {
-          // A star on every row; the filled one marks the program's host, a click moves it here
-          var st = document.createElement("span");
-          st.className = "pstar" + (hosted.length ? " on" : "");
-          st.textContent = hosted.length ? "\u2605" : "\u2606";
-          st.title = hosted.length ? progs[0].name + " is hosted here. Click to remove it." : "Host " + progs[0].name + " here";
-          st.onclick = function (ev) { ev.stopPropagation(); assignZone(progs[0].id, hosted.length ? "" : r.school.id); };
-          b.querySelector(".top").appendChild(st);
-        } else if (hosted.length) {
-          var mk = document.createElement("span"); mk.className = "pmark"; mk.textContent = " \u2605"; mk.title = "Hosts " + hosted.map(function (z) { return z.name; }).join(", ");
-          b.querySelector(".name").appendChild(mk);
-        }
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
-        box.appendChild(b);
+        list.appendChild(b);
       });
-      if (PROG_STYLE !== "tag") progs.forEach(function (z) { box.appendChild(programCard(z)); });
+      box.appendChild(list);
+      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
       var e = document.createElement("button");
-      e.className = "school unassign" + (state.brush === "" ? " selected" : "");
-      e.innerHTML = '<div class="top"><span class="swatch none"></span><span class="name">Unassign</span></div>';
+      e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
+      e.setAttribute("aria-pressed", String(state.brush === ""));
+      e.innerHTML = '<span class="sw none"></span>';
+      e.appendChild(document.createTextNode("No " + lvlName + " school (unassign)"));
       e.onclick = function () { state.brush = ""; renderPanel(); };
       box.appendChild(e);
       $("schoolCount").textContent = tc.rows.length + " schools";
@@ -820,8 +840,6 @@
         un.appendChild(fb);
       }
 
-      renderPrograms();
-
       var chip = $("chip");
       chip.innerHTML = "";
       if (state.brush != null) {
@@ -835,38 +853,71 @@
       renderLookup();
     }
 
-    // How programs are picked: "card" (a card in the school list with a host dropdown) or
-    // "tag" (a star on each school row); ?progstyle= in the address overrides it for previews
-    var PROG_STYLE = new URLSearchParams(location.search).get("progstyle") || C.programStyle || "card";
     function progStudents(z) { return Number(z.program === "MS" ? z.msC : z.hsC) || 0; }
-    function programCard(z) {
-      var host = state.assign[state.level][z.id] || "";
-      var c = document.createElement("label");
-      c.className = "school progcard";
-      c.innerHTML = '<div class="top"><span class="pmark big">\u2605</span><span class="name"></span><span class="cap"></span></div><div class="phost"></div><select></select>';
-      c.querySelector(".name").textContent = z.name;
-      c.querySelector(".cap").textContent = progStudents(z).toLocaleString() + " students";
-      c.querySelector(".phost").textContent = host ? "Host: " + nameOf(host) + " \u25BE" : "Pick a host school \u25BE";
-      var sel = c.querySelector("select");
-      sel.setAttribute("aria-label", "Host school for " + z.name);
-      [{ id: "", name: "No host yet" }].concat(P.schoolsFor(state.schools, state.level)).forEach(function (sc) {
-        var o = document.createElement("option"); o.value = sc.id; o.textContent = sc.name; sel.appendChild(o);
-      });
-      sel.value = host;
-      sel.onchange = function () { assignZone(z.id, sel.value); };
-      return c;
+    function programLabel(z) { var p = PROGRAMS.filter(function (x) { return x.level === z.program; })[0]; return (p && p.label) || z.name; }
+
+    // Capacity bar: the track runs to 150% of capacity, with a mark at 100%; a program's
+    // students show hatched after the school's own
+    function capBar(color, base, extra, cap, small) {
+      var w = function (n) { return cap > 0 ? Math.min(n / cap, 1.5) / 1.5 * 100 : 0; };
+      var bar = document.createElement("span"); bar.className = "cbar" + (small ? " sm" : "");
+      bar.innerHTML = '<span class="trk"><span class="base"></span><span class="ha"></span></span><span class="capm"></span>';
+      var bw = w(base);
+      bar.querySelector(".base").style.cssText = "width:" + bw + "%;background:" + color;
+      bar.querySelector(".ha").style.cssText = "width:" + Math.max(0, w(base + extra) - bw) + "%;background:repeating-linear-gradient(135deg," + color + " 0 " + (small ? 2 : 3) + "px," + cssRgba(color, 0.35) + " " + (small ? 2 : 3) + "px " + (small ? 4 : 6) + "px)";
+      return bar;
     }
-    function renderPrograms() {
-      var box = $("programs"), list = programsFor(state.level);
-      box.innerHTML = "";
-      box.hidden = !(PROG_STYLE === "tag" && list.length);
-      if (box.hidden) return;
-      list.forEach(function (z) {
-        var p = document.createElement("p"); p.className = "note";
-        p.innerHTML = '<span class="pmark">\u2605</span> <b></b> (' + progStudents(z).toLocaleString() + " students): click a school's star to host it.";
-        p.querySelector("b").textContent = z.name;
-        box.appendChild(p);
-      });
+
+    // The program's card: shows its host; opening it lists each school as it would be with the program added
+    function programCard(z, rows) {
+      var host = state.assign[state.level][z.id] || "", n = progStudents(z);
+      state.progOpen = state.progOpen || {};
+      var open = !!state.progOpen[z.id];
+      var c = document.createElement("div"); c.className = "hacard" + (open ? " open" : "");
+      var head = document.createElement("button");
+      head.type = "button"; head.className = "hahead";
+      head.setAttribute("aria-expanded", String(open)); head.setAttribute("aria-haspopup", "listbox");
+      head.innerHTML = '<span class="star" aria-hidden="true">\u2605</span><span class="nm"></span><span class="hhost"></span>' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3d3a35" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>';
+      head.querySelector(".nm").textContent = programLabel(z);
+      var hh = head.querySelector(".hhost");
+      if (host) {
+        var sw = document.createElement("span"); sw.className = "sw sm"; sw.style.background = (state.schools.filter(function (x) { return x.id === host; })[0] || {}).color || "#ccc";
+        var hn = document.createElement("b"); hn.textContent = nameOf(host);
+        hh.appendChild(sw); hh.appendChild(hn);
+      } else { hh.className += " none"; hh.textContent = "Unassigned"; }
+      head.onclick = function () { state.progOpen[z.id] = !open; renderPanel(); };
+      c.appendChild(head);
+      if (open) {
+        var lb = document.createElement("div"); lb.className = "halist"; lb.setAttribute("role", "listbox");
+        lb.setAttribute("aria-label", "Assign " + programLabel(z) + " to a school");
+        var note = document.createElement("div"); note.className = "hanote"; note.textContent = "Capacity shown with " + n.toLocaleString() + " students added";
+        lb.appendChild(note);
+        var pick = function (id) { state.progOpen[z.id] = false; if (id !== host) assignZone(z.id, id); else renderPanel(); };
+        var none = document.createElement("button");
+        none.type = "button"; none.className = "haopt none" + (host ? "" : " on"); none.setAttribute("role", "option"); none.setAttribute("aria-selected", String(!host));
+        none.innerHTML = '<span class="r1"><span class="sw none"></span><span class="nm">Unassigned</span></span>';
+        none.onclick = function () { pick(""); };
+        lb.appendChild(none);
+        rows.forEach(function (r) {
+          var own = r.students - (host === r.school.id ? n : 0), total = own + n, diff = r.capacity - total;
+          var pct = r.capacity > 0 ? Math.round(total / r.capacity * 100) : 0;
+          var o = document.createElement("button");
+          o.type = "button"; o.className = "haopt"; o.setAttribute("role", "option"); o.setAttribute("aria-selected", String(host === r.school.id));
+          if (host === r.school.id) { o.style.boxShadow = "inset 0 0 0 2px " + r.school.color; o.style.background = cssRgba(r.school.color, 0.1); }
+          o.innerHTML = '<span class="r1"><span class="sw"></span><span class="nm"></span><span class="seats"></span><span class="pc"></span></span>';
+          o.querySelector(".sw").style.background = r.school.color;
+          o.querySelector(".nm").textContent = r.school.name;
+          var se = o.querySelector(".seats"); se.textContent = diff >= 0 ? diff.toLocaleString() + " open" : (-diff).toLocaleString() + " over";
+          if (diff < 0) se.className += " over";
+          var pc = o.querySelector(".pc"); pc.textContent = pct + "%"; if (pct > 100) pc.className += " over";
+          o.appendChild(capBar(r.school.color, own, n, r.capacity, true));
+          o.onclick = function () { pick(r.school.id); };
+          lb.appendChild(o);
+        });
+        c.appendChild(lb);
+      }
+      return c;
     }
 
     // One line per middle school: the share of its students going to each high school
@@ -1059,6 +1110,7 @@
       return s ? s.name : id;
     }
 
+    function cssRgba(hex, a) { return "rgba(" + hexToRgba(hex, a).join(",") + ")"; }
     function hexToRgba(hex, a) {
       var h = hex.replace("#", "");
       if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
