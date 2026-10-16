@@ -252,20 +252,24 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=26"></script>
-  <script src="planner-core.js?v=26"></script>
+  <script src="config.js?v=27"></script>
+  <script src="planner-core.js?v=27"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
     "esri/Map", "esri/WebMap", "esri/config", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic",
     "esri/geometry/Polygon", "esri/request", "esri/widgets/Search",
-    "esri/geometry/support/webMercatorUtils"
-  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest, Search, wmUtils) {
+    "esri/geometry/support/webMercatorUtils", "esri/identity/OAuthInfo", "esri/identity/IdentityManager"
+  ], function (Map, WebMap, esriConfig, MapView, FeatureLayer, Graphic, Polygon, esriRequest, Search, wmUtils, OAuthInfo, esriId) {
     var C = window.PLANNER_CONFIG, P = window.PlannerCore, F = C.fields;
     // Testing a private layer: index.html?zones=<layer URL> loads that layer instead.
     // Private layers ask for an ArcGIS sign-in, so only people with access see them.
     var zonesParam = new URLSearchParams(location.search).get("zones");
     if (zonesParam && /^https:\/\/[\w.-]+\.arcgis\.com\/.+\/FeatureServer\/\d+\/?$/i.test(zonesParam)) C.zonesLayerUrl = zonesParam;
+    // With an OAuth client ID (config oauthAppId or ?appid=), private layers send people to the
+    // ArcGIS Online sign-in page, which supports organization (SSO) logins
+    var appId = new URLSearchParams(location.search).get("appid") || C.oauthAppId;
+    if (appId) esriId.registerOAuthInfos([new OAuthInfo({ appId: appId, portalUrl: C.portalUrl || "https://www.arcgis.com", popup: false })]);
     // Projected enrollment is shown only when the layer has projected fields (always in demo mode)
     var FRAMED = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
     var HAS_PROJ = !C.zonesLayerUrl || !!(F.msProjected && F.hsProjected);

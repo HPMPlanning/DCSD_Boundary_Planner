@@ -14,6 +14,8 @@ window.PLANNER_CONFIG = {
   // Leave "" for a plain gray basemap. The zones layer can be in the map or not.
   webMapId: "",
   portalUrl: "",
+  // OAuth client ID for signing in to private layers (optional; ?appid= in the address also works)
+  oauthAppId: "",
 
   // Optional: only these elementary zones are loaded; leave [] for every zone in the
   // layer. A name matches a zone whose name contains it, so "Montgomery ES" matches
