@@ -189,8 +189,9 @@
     .hhost.none { color: #6b6862; }
     .hahead svg { flex: none; }
     .hacard select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font: inherit; font-size: 14px; }
-    .unas { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; min-height: 40px; margin-top: 8px; padding: 8px 10px; border-radius: 3px; border: 1px dashed #b5b1a8; background: #fff; cursor: pointer; font: inherit; font-size: 14px; color: #3d3a35; text-align: left; }
-    .unas.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .unas { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; min-height: 40px; margin-top: 8px; padding: 8px 10px; border-radius: 3px; border: 1px solid #c9c5bc; background: #fff; cursor: pointer; font: inherit; font-size: 14px; color: var(--ink); text-align: left; }
+    .unas:hover { background: #f7f6f2; }
+    .unas.on { background: #f0f0f0; box-shadow: inset 0 0 0 2px var(--accent); }
     .fbox .fstar { font-style: normal; margin-left: 4px; }
     #feedView .fkey { margin: -4px 0 10px; }
     #uc img { height: 56px; width: auto; margin-bottom: 18px; }
@@ -280,8 +281,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=37"></script>
-  <script src="planner-core.js?v=37"></script>
+  <script src="config.js?v=38"></script>
+  <script src="planner-core.js?v=38"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
