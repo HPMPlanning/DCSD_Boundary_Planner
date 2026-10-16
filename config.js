@@ -25,6 +25,13 @@ window.PLANNER_CONFIG = {
   // ?zones=<layer URL>, which is how the private layer is tested
   underConstruction: false,
 
+  // Programs drawn on the zones layer as stand-in zones (matched by name). They stay off the
+  // map, show only on their level's tab, and people pick the school that hosts them.
+  programs: [
+    { name: "High Achievers MS", level: "MS" },
+    { name: "High Achievers HS", level: "HS" }
+  ],
+
   // Optional: public layer of school locations, ending in /FeatureServer/0. Points are
   // matched to the schools below by name ("Dunwoody HS" matches "Dunwoody High School"),
   // so elementary, charter and private schools in the layer are ignored. Shows the
