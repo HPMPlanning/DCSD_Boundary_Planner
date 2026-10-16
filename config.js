@@ -53,10 +53,11 @@ window.PLANNER_CONFIG = {
 
   // Field names in the zones layer. "" means the layer doesn't have it.
   fields: {
-    zoneName: "Campus",          // elementary zone name
+    // Each of the first three lists the test layer's field name, then the real layer's
+    zoneName: ["Campus", "School_Nam"],        // elementary zone name
     zoneId: "",                  // optional unique ID; OBJECTID is used when ""
-    msCurrent: "SUM_MS_STUD",    // grades 6-8 students living in the zone
-    hsCurrent: "SUM_HS_STUD",    // grades 9-12 students living in the zone
+    msCurrent: ["SUM_MS_STUD", "Tot_6_8"],     // grades 6-8 students living in the zone
+    hsCurrent: ["SUM_HS_STUD", "Tot_9_12"],    // grades 9-12 students living in the zone
     msProjected: "",             // optional projected grades 6-8; adds a Projected bar
     hsProjected: "",             // optional projected grades 9-12
     currentMs: "",               // optional name of today's middle school

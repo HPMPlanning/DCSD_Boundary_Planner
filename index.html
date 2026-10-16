@@ -252,8 +252,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=27"></script>
-  <script src="planner-core.js?v=27"></script>
+  <script src="config.js?v=28"></script>
+  <script src="planner-core.js?v=28"></script>
   <script src="https://js.arcgis.com/4.31/"></script>
   <script>
   require([
@@ -266,6 +266,7 @@
     // Private layers ask for an ArcGIS sign-in, so only people with access see them.
     var zonesParam = new URLSearchParams(location.search).get("zones");
     if (zonesParam && /^https:\/\/[\w.-]+\.arcgis\.com\/.+\/FeatureServer\/\d+\/?$/i.test(zonesParam)) C.zonesLayerUrl = zonesParam;
+    else if (zonesParam) var zonesParamBad = true;
     // With an OAuth client ID (config oauthAppId or ?appid=), private layers send people to the
     // ArcGIS Online sign-in page, which supports organization (SSO) logins
     var appId = new URLSearchParams(location.search).get("appid") || C.oauthAppId;
@@ -337,25 +338,56 @@
         q.where = "1=1"; q.outFields = ["*"]; q.returnGeometry = true;
         // Match the web map's projection when there is one
         q.outSpatialReference = (map.initialViewProperties && map.initialViewProperties.spatialReference) || view.spatialReference;
+        // Name fields that config.js expects but this layer lacks, so the notice can say which
+        var have = {}; src.fields.forEach(function (f) { have[f.name.toLowerCase()] = f.name; });
+        // A field setting can list several names; the first one this layer has is used
+        Object.keys(F).forEach(function (k) {
+          if (!Array.isArray(F[k])) return;
+          F[k] = F[k].map(function (n) { return have[String(n).toLowerCase()]; }).filter(Boolean)[0] || F[k].join(" or ");
+        });
+        var nameField = have[String(F.zoneName).toLowerCase()];
+        if (!nameField) {
+          var guess = src.fields.filter(function (f) { return f.type === "string" && /campus|school|zone|name/i.test(f.name); })[0];
+          nameField = guess && guess.name;
+        }
+        var missing = ["zoneName", "msCurrent", "hsCurrent"].filter(function (k) { return F[k] && !have[String(F[k]).toLowerCase()]; })
+          .map(function (k) { return F[k]; });
         return src.queryFeatures(q).then(function (fs) {
           var oidField = src.objectIdField;
-          return fs.features.map(function (g) {
+          var all = fs.features.map(function (g) {
             var a = g.attributes;
             return {
               id: String(a[F.zoneId] != null ? a[F.zoneId] : a[oidField]),
-              name: String(a[F.zoneName] != null ? a[F.zoneName] : "Zone " + a[oidField]),
+              name: String(nameField && a[nameField] != null ? a[nameField] : "Zone " + a[oidField]),
               msC: num(a[F.msCurrent]), msP: num(a[F.msProjected]),
               hsC: num(a[F.hsCurrent]), hsP: num(a[F.hsProjected]),
               curMs: a[F.currentMs], curHs: a[F.currentHs],
               geometry: g.geometry
             };
-          }).filter(keepZone).sort(function (a, b) { return a.name.localeCompare(b.name); });
+          });
+          var kept = all.filter(keepZone);
+          var notes = [];
+          if (missing.length) notes.push("This layer has no field named " + missing.join(", ") + ". Its fields are: " +
+            src.fields.map(function (f) { return f.name; }).join(", ") + ".");
+          if (!all.length) notes.push("The layer has no zones in it.");
+          else if (!kept.length) {
+            // Show every zone rather than an empty map when none match the zone list
+            notes.push("None of the " + all.length + " zones matched the zone list in config.js, so all of them are shown. Names on the layer look like: " +
+              all.slice(0, 5).map(function (z) { return z.name; }).join(", ") + ".");
+            kept = all;
+          }
+          if (zonesParamBad) notes.unshift("The zones address in the page link wasn't recognized, so the test layer is shown. It should end in /FeatureServer/0.");
+          if (notes.length) $("warnings").textContent = notes.join(" ");
+          return kept.sort(function (a, b) { return a.name.localeCompare(b.name); });
         });
       });
     }
 
     // Optional list of zone names to load (config zoneNames); a name matches a zone whose name contains it
-    function zkey(t) { return String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+    // "ES", "Elementary" and "School" are ignored, so "Ashford Park ES" matches "Ashford Park Elementary"
+    function zkey(t) {
+      return String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\b(es|elementary|school)\b/g, " ").replace(/\s+/g, " ").trim();
+    }
     var ZONE_KEYS = (C.zoneNames || []).map(zkey);
     var zoneHits = {};
     function keepZone(z) {
