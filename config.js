@@ -25,9 +25,6 @@ window.PLANNER_CONFIG = {
   // ?zones=<layer URL>, which is how the private layer is tested
   underConstruction: false,
 
-  // Address search box on the map (Esri World Geocoder); false hides it
-  addressSearch: false,
-
   // Programs drawn on the zones layer as stand-in zones (matched by name). They stay off the
   // map, show only on their level's tab, and people pick the school that hosts them.
   programs: [
