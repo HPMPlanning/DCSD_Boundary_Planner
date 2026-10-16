@@ -281,8 +281,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=42"></script>
-  <script src="planner-core.js?v=42"></script>
+  <script src="config.js?v=43"></script>
+  <script src="planner-core.js?v=43"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -585,7 +585,7 @@
         console.error("School points could not be loaded", e);
       });
     }
-    // Elementary school locations inside the planner's zones: plain black dots, no labels
+    // Elementary school locations inside the planner's zones: black rings, no labels
     // (the zones are already labeled)
     function addElementaryPoints(features, fld) {
       var zones = mapZones();
@@ -599,7 +599,7 @@
         source: pts.map(function (g, i) { return new Graphic({ geometry: g.geometry, attributes: { oid: i + 1 } }); }),
         objectIdField: "oid", geometryType: "point", spatialReference: pts[0].geometry.spatialReference,
         fields: [{ name: "oid", type: "oid" }], title: "Elementary schools", popupEnabled: false,
-        renderer: { type: "simple", symbol: { type: "simple-marker", style: "circle", size: 7, color: "#231e1f", outline: { color: "#ffffff", width: 1 } } }
+        renderer: { type: "simple", symbol: { type: "simple-marker", style: "circle", size: 10, color: "#ffffff", outline: { color: "#231e1f", width: 2.5 } } }
       });
       map.add(esLayer, map.layers.indexOf(ptsLayer));
     }
