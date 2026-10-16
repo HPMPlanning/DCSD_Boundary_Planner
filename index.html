@@ -232,7 +232,7 @@
           <button id="tabMS" class="active" role="tab">Middle school</button>
           <button id="tabHS" role="tab">High school</button>
         </div>
-        <div class="sechead"><h2>Choose a school</h2><span id="schoolCount"></span></div>
+        <div class="sechead"><h2>Choose a school</h2></div>
         <div id="schools"></div>
         <div id="unassigned" class="callout"></div>
         <div id="last" class="sr" role="status"></div>
@@ -281,8 +281,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=40"></script>
-  <script src="planner-core.js?v=40"></script>
+  <script src="config.js?v=41"></script>
+  <script src="planner-core.js?v=41"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -758,7 +758,6 @@
       e.appendChild(document.createTextNode("Unassigned zone"));
       e.onclick = function () { state.brush = ""; renderPanel(); };
       box.appendChild(e);
-      $("schoolCount").textContent = tc.rows.length + " schools";
 
       var u = tc.unassigned, up = tp.unassigned, un = $("unassigned"), lvl = state.level === "MS" ? "middle" : "high";
       un.innerHTML = "<strong></strong><span></span>";
