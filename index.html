@@ -291,8 +291,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=32"></script>
-  <script src="planner-core.js?v=32"></script>
+  <script src="config.js?v=33"></script>
+  <script src="planner-core.js?v=33"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -450,11 +450,19 @@
     var PROGRAMS = (C.programs || []).map(function (p) { return { key: zkey(p.name), level: p.level, label: p.label }; });
     function markPrograms(zones) {
       zones.forEach(function (z) {
-        var n = " " + zkey(z.name) + " ", p = PROGRAMS.filter(function (x) { return n.indexOf(" " + x.key + " ") >= 0; })[0];
+        var k = zkey(z.name), n = " " + k + " ", p = PROGRAMS.filter(function (x) { return n.indexOf(" " + x.key + " ") >= 0; })[0];
+        // Looser match: any zone named like "High Achiever(s) Middle/MS" or "... High/HS"
+        if (!p && /achiever/.test(k)) {
+          var rest = " " + k.replace(/\bhigh achievers?\b|\bachievers?\b|\bprogram\b/g, " ") + " ";
+          var lvl = /\s(ms|middle)\s/.test(rest) ? "MS" : /\s(hs|high)\s/.test(rest) ? "HS" : "";
+          p = PROGRAMS.filter(function (x) { return x.level === lvl; })[0];
+        }
         if (!p) return;
         z.program = p.level;
         if (p.level === "MS") { z.hsC = 0; z.hsP = 0; } else { z.msC = 0; z.msP = 0; }
       });
+      if (PROGRAMS.length && !zones.some(function (z) { return z.program; }))
+        console.warn("No program zones found. Zone names: " + zones.map(function (z) { return z.name; }).join(", "));
     }
     function mapZones() { return state.zones.filter(function (z) { return !z.program; }); }
     function programsFor(level) { return state.zones.filter(function (z) { return z.program === level; }); }
