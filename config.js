@@ -28,8 +28,8 @@ window.PLANNER_CONFIG = {
   // Programs drawn on the zones layer as stand-in zones (matched by name). They stay off the
   // map, show only on their level's tab, and people pick the school that hosts them.
   programs: [
-    { name: "High Achievers MS", level: "MS" },
-    { name: "High Achievers HS", level: "HS" }
+    { name: "High Achievers MS", level: "MS", label: "High Achievers Program" },
+    { name: "High Achievers HS", level: "HS", label: "High Achievers Program" }
   ],
 
   // Optional: public layer of school locations, ending in /FeatureServer/0. Points are
