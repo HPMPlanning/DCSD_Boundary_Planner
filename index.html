@@ -258,8 +258,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=29"></script>
-  <script src="planner-core.js?v=29"></script>
+  <script src="config.js?v=30"></script>
+  <script src="planner-core.js?v=30"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -343,7 +343,10 @@
       setupSearch();
     }).catch(function (e) {
       showMap();
-      $("warnings").textContent = "The zones layer could not be loaded. " + (e && e.message ? e.message : "");
+      // A private layer the visitor can't sign in to (cancelled, or no access)
+      var denied = e && (/identity-manager/.test(e.name || "") || /^(403|498|499)$/.test(String((e.details && e.details.httpStatus) || "")));
+      $("warnings").textContent = denied ? "This planner isn't open to the public yet. Sign in with an ArcGIS account that has access to see it."
+        : "The zones layer could not be loaded. " + (e && e.message ? e.message : "");
       console.error(e);
     });
 

@@ -7,7 +7,7 @@ window.PLANNER_CONFIG = {
     "Double-click a zone to unassign it.",
 
   // Public URL of the elementary zones layer, ending in /FeatureServer/0
-  zonesLayerUrl: "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/DEKALBAPPNOTREALDATA/FeatureServer/0",
+  zonesLayerUrl: "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/PrivateCalcTestLayer/FeatureServer/0",
 
   // Optional: item ID of a publicly shared web map to use as the background, so its
   // basemap and layers (school points and labels, roads) show under the planner.
@@ -23,7 +23,7 @@ window.PLANNER_CONFIG = {
 
   // While true, the page shows an Under Construction notice unless its address has
   // ?zones=<layer URL>, which is how the private layer is tested
-  underConstruction: true,
+  underConstruction: false,
 
   // Optional: public layer of school locations, ending in /FeatureServer/0. Points are
   // matched to the schools below by name ("Dunwoody HS" matches "Dunwoody High School"),
