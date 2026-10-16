@@ -291,8 +291,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=35"></script>
-  <script src="planner-core.js?v=35"></script>
+  <script src="config.js?v=36"></script>
+  <script src="planner-core.js?v=36"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -525,6 +525,7 @@
     // middle and high school that zone has in the current plan
     var lookup = null;
     function setupSearch() {
+      if (C.addressSearch === false) return;
       var search = new Search({ view: view, popupEnabled: false, locationEnabled: false, includeDefaultSources: true, allPlaceholder: "Find your address" });
       search.when(function () {
         search.allSources.forEach(function (src) { src.placeholder = "Find your address"; });
