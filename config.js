@@ -44,7 +44,7 @@ window.PLANNER_CONFIG = {
   // Leave empty to allow CSV download only.
   submissionsTableUrl: "",
   // Submitted plans open in the person's email app, addressed here (used instead of the table when set)
-  submitEmail: "",
+  submitEmail: "redistricting@dekalbschoolsga.org",
 
   // Field names in the zones layer. "" means the layer doesn't have it.
   fields: {

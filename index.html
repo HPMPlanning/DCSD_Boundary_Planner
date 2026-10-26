@@ -92,6 +92,7 @@
     .dlg[hidden] { display: none; }
     .dlg .box { background: #fff; padding: 20px 22px; max-width: 420px; width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
     .dlg .box.wide { max-width: 560px; }
+    .dlg .box:focus { outline: none; }
     .dlg h2 { font-size: 28px; margin: 0 0 12px; }
     .dlg h3 { font-size: 14px; margin: 14px 0 6px; }
     .dlg p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
@@ -278,7 +279,8 @@
           <p>Your email app should open with your plan filled in, addressed to <b id="mailTo"></b>. Press Send in your email to submit it.</p>
           <p>If it didn't open, or the plan looks cut off, your plan is also copied: paste it into an email to <b id="mailTo2"></b>.</p>
           <textarea id="mailText" readonly rows="8" aria-label="Your plan as text"></textarea>
-          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn">Copy plan</button><button id="mailAgain" class="btn">Open email again</button></div>
+          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn">Copy plan</button><button id="mailAgain" class="btn">Open email again</button><button id="mailPics" class="btn">Save map pictures</button></div>
+          <p id="picsNote" style="font-size:13px;color:var(--muted)">To add pictures of your map, select Save map pictures and attach the two images to your email. The email also has a link that opens your plan on the map.</p>
         </div>
         <ul id="thanksNext"></ul>
         <div class="actions" style="margin-bottom:16px"><button id="thanksCsv" class="btn">Download my plan</button><button id="thanksNew" class="btn primary">Make another plan</button></div>
@@ -286,7 +288,7 @@
     </div>
   </div>
   <div id="welcome" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
-    <div class="box welcome">
+    <div class="box welcome" id="welcomeBox" tabindex="-1">
       <h2 id="welcomeTitle" class="serif">Welcome to the Community Boundary Builder</h2>
       <p>This planner uses the <b>Option A elementary school boundaries</b> from Engagement Session 3. Each shaded area on the map is one Option A elementary zone. The elementary boundaries stay as they are. You decide which middle school and high school each zone attends.</p>
       <h3>How to build a plan</h3>
@@ -312,8 +314,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=47"></script>
-  <script src="planner-core.js?v=47"></script>
+  <script src="config.js?v=48"></script>
+  <script src="planner-core.js?v=48"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -395,6 +397,10 @@
         return;
       }
       resetAssignments();
+      if (PLAN_PARAM) {
+        if (applyPlanCode(PLAN_PARAM)) $("last").textContent = "Showing a plan opened from a link.";
+        else $("last").textContent = "That plan link didn't match these zones, so the map starts fresh.";
+      }
       buildLayer();
       setLevel("MS");
       loadSchoolPoints();
@@ -486,6 +492,32 @@
       });
       if (PROGRAMS.length && !zones.some(function (z) { return z.program; }))
         console.warn("No program zones found. Zone names: " + zones.map(function (z) { return z.name; }).join(", "));
+    }
+    // A plan as a short link code: one character per zone (sorted by name) giving the
+    // school's place in the name-sorted list for that level, 0 for none; MS-HS
+    var PLAN_PARAM = new URLSearchParams(location.search).get("plan") || "";
+    function byName(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }
+    function planSchools(level) { return P.schoolsFor(state.schools, level).slice().sort(byName); }
+    function planCode() {
+      var zs = state.zones.slice().sort(byName);
+      return ["MS", "HS"].map(function (lv) {
+        var list = planSchools(lv).map(function (x) { return x.id; });
+        return zs.map(function (z) { return (list.indexOf(state.assign[lv][z.id]) + 1).toString(36); }).join("");
+      }).join("-");
+    }
+    function planLink() {
+      if (planSchools("MS").length > 35 || planSchools("HS").length > 35) return "";
+      return location.origin + location.pathname + "?plan=" + planCode();
+    }
+    function applyPlanCode(code) {
+      var parts = String(code).split("-"), zs = state.zones.slice().sort(byName);
+      if (parts.length !== 2 || parts[0].length !== zs.length || parts[1].length !== zs.length) return false;
+      ["MS", "HS"].forEach(function (lv, k) {
+        var list = planSchools(lv), a = {};
+        zs.forEach(function (z, i) { var n = parseInt(parts[k][i], 36); if (n > 0 && list[n - 1]) a[z.id] = list[n - 1].id; });
+        state.assign[lv] = a;
+      });
+      return true;
     }
     function mapZones() { return state.zones.filter(function (z) { return !z.program; }); }
     function programsFor(level) { return state.zones.filter(function (z) { return z.program === level; }); }
@@ -1196,7 +1228,9 @@
     // ---------- email submission ----------
     // The plan as plain text: each school with its seats and zones, then the programs
     function planText(planId, tm, th, overCount) {
-      var out = [C.title, "Plan ID: " + planId, ""];
+      var out = [C.title, "Plan ID: " + planId], link = planLink();
+      if (link) out.push("See this plan on the map: " + link);
+      out.push("");
       var nm = $("nameIn").value.trim(), em = $("emailIn").value.trim(), cm = $("commentIn").value.trim();
       if (nm) out.push("Name: " + nm);
       if (em) out.push("Email: " + em);
@@ -1242,7 +1276,35 @@
         (navigator.clipboard ? navigator.clipboard.writeText(body) : Promise.reject()).catch(function () { document.execCommand("copy"); })
           .then(function () { $("mailCopy").textContent = "Copied"; });
       };
+      $("mailPics").onclick = function () { saveMapPictures(planId); };
       $("thanksMail").hidden = false;
+    }
+
+    // Pictures of the middle and high school maps, for attaching to the email
+    function whenDrawn() {
+      return new Promise(function (done) {
+        var t0 = Date.now();
+        (function check() { if ((!view.updating && Date.now() - t0 > 600) || Date.now() - t0 > 8000) done(); else setTimeout(check, 150); })();
+      });
+    }
+    function saveMapPictures(planId) {
+      var btn = $("mailPics"), was = state.level;
+      btn.disabled = true; btn.textContent = "Saving...";
+      $("review").hidden = true;
+      var run = Promise.resolve();
+      [["MS", "middle"], ["HS", "high"]].forEach(function (x) {
+        run = run.then(function () { setLevel(x[0]); return whenDrawn(); })
+          .then(function () { return view.takeScreenshot({ format: "png" }); })
+          .then(function (shot) {
+            var a = document.createElement("a"); a.href = shot.dataUrl;
+            a.download = "boundary-plan-" + planId + "-" + x[1] + "-schools.png";
+            document.body.appendChild(a); a.click(); a.remove();
+          });
+      });
+      run.catch(function () {}).then(function () {
+        setLevel(was); $("review").hidden = false;
+        btn.disabled = false; btn.textContent = "Save map pictures";
+      });
     }
 
     function showThanks(planId) {
@@ -1297,13 +1359,13 @@
     // Welcome pop-up on every visit; "Instructions" opens it again
     function showWelcome(show) {
       $("welcome").hidden = !show;
-      if (show) $("welcomeOk").focus(); else $("aboutBtn").focus();
+      if (show) $("welcomeBox").focus(); else $("aboutBtn").focus();
     }
     $("welcomeOk").onclick = function () { showWelcome(false); };
     $("aboutBtn").onclick = function () { showWelcome(true); };
     $("welcome").addEventListener("keydown", function (e) { if (e.key === "Escape") showWelcome(false); });
     $("welcome").addEventListener("click", function (e) { if (e.target === $("welcome")) showWelcome(false); });
-    showWelcome(true);
+    if (!PLAN_PARAM) showWelcome(true);
 
     $("thanksNew").onclick = function () {
       state.submitted = false;
