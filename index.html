@@ -160,6 +160,10 @@
     }
     #uc { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; box-sizing: border-box; color: var(--ink); font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; }
     #uc[hidden] { display: none; }
+    .dlg .box.welcome { max-width: 560px; }
+    .dlg .box.welcome h2 { font-size: 26px; }
+    .dlg .box.welcome ol { margin: 0 0 14px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+    .dlg .box.welcome li { margin-bottom: 4px; }
     #mapHead h1 .sub { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
     #mailText { width: 100%; box-sizing: border-box; font: 12px/1.4 Consolas, monospace; padding: 8px; border: 1px solid var(--line); resize: vertical; }
     .pmark { color: var(--ink); }
@@ -209,6 +213,7 @@
         <img id="logo" src="dcsd-logo.svg" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <div class="hbtns">
+          <button id="aboutBtn" class="btn">How it works</button>
           <button id="feedBtn" class="btn" aria-pressed="false">Feeder patterns</button>
           <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend">Map legend</button>
         </div>
@@ -281,6 +286,25 @@
       </div>
     </div>
   </div>
+  <div id="welcome" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="box welcome">
+      <h2 id="welcomeTitle" class="serif">Welcome to the Community Boundary Builder</h2>
+      <p>This planner uses the <b>Option A elementary school boundaries</b> from Engagement Session 3. Each shaded area on the map is one Option A elementary zone. The elementary boundaries stay as they are. You decide which middle school and high school each zone attends.</p>
+      <h3>How to build a plan</h3>
+      <ol>
+        <li>Pick the <b>Middle school</b> or <b>High school</b> tab.</li>
+        <li>Choose a school in the side panel, then click zones on the map to assign them to it. Double-click a zone to unassign it.</li>
+        <li>Watch each school's bar. The black mark is full capacity, and the percent turns red when a school is over.</li>
+        <li>Use the <b>High Achievers Program</b> dropdown to pick which school hosts it. Its students count toward that school.</li>
+        <li>When every zone has a middle and high school, select <b>Review and submit plan</b>.</li>
+      </ol>
+      <h3>About "nearest school"</h3>
+      <p>The button that fills zones with the nearest school measures a straight line from the center point of each elementary zone to each school. It doesn't use driving distance or where students live within the zone, so treat it as a starting point and adjust from there.</p>
+      <h3>About the numbers</h3>
+      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone.</p>
+      <div class="actions"><button id="welcomeOk" class="btn primary">Get started</button></div>
+    </div>
+  </div>
   <div id="dlg" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dlgText">
     <div class="box">
       <p id="dlgText"></p>
@@ -289,8 +313,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=45"></script>
-  <script src="planner-core.js?v=45"></script>
+  <script src="config.js?v=46"></script>
+  <script src="planner-core.js?v=46"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -656,10 +680,7 @@
           { name: "now_n", type: "integer" }, { name: "proj_n", type: "integer" }, { name: "assigned", type: "string" }
         ],
         outFields: ["*"], title: "Elementary zones", popupEnabled: false,
-        labelingInfo: [{
-          labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' students'" },
-          symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
-        }]
+        labelingInfo: zoneLabels(state.level)
       });
       map.add(layer, 0); // under any web map layers, so school points stay visible
       layer.when(function () { return layer.queryExtent(); }).then(function (r) {
@@ -681,6 +702,14 @@
       });
     }
 
+    // Zone labels: the name, then the students for the tab, e.g. "245 Middle Students"
+    function zoneLabels(level) {
+      var unit = level === "MS" ? "Middle Students" : "High Students";
+      return [{
+        labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' " + unit + "'" },
+        symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
+      }];
+    }
     function rendererFor(level) {
       return {
         type: "unique-value", field: "assigned",
@@ -712,7 +741,7 @@
       var list = P.schoolsFor(state.schools, level);
       // Each tab remembers the school last picked on it
       state.brush = state.brushes[level] != null ? state.brushes[level] : (list.length ? list[0].id : "");
-      if (layer) layer.renderer = rendererFor(level);
+      if (layer) { layer.renderer = rendererFor(level); layer.labelingInfo = zoneLabels(level); }
       if (ptsLayer) ptsLayer.definitionExpression = "level = '" + level + "'";
       refreshLayer();
       renderPanel();
@@ -1061,7 +1090,7 @@
     // ---------- CSV ----------
     // A readable CSV: each elementary zone with its schools, the programs' hosts, then each school's totals
     function planCsv() {
-      var c = P.csvCell, lines = [["Elementary zone", "Middle school", "High school", "Students in grades 6-8", "Students in grades 9-12"].join(",")];
+      var c = P.csvCell, lines = [["Elementary zone", "Middle school", "High school", "Middle Students", "High Students"].join(",")];
       mapZones().slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (z) {
         lines.push([z.name, nameOf(state.assign.MS[z.id] || ""), nameOf(state.assign.HS[z.id] || ""), z.msC, z.hsC].map(c).join(","));
       });
@@ -1264,6 +1293,17 @@
       ul.innerHTML = "";
       items.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
     }
+
+    // Welcome pop-up on every visit; "How it works" opens it again
+    function showWelcome(show) {
+      $("welcome").hidden = !show;
+      if (show) $("welcomeOk").focus(); else $("aboutBtn").focus();
+    }
+    $("welcomeOk").onclick = function () { showWelcome(false); };
+    $("aboutBtn").onclick = function () { showWelcome(true); };
+    $("welcome").addEventListener("keydown", function (e) { if (e.key === "Escape") showWelcome(false); });
+    $("welcome").addEventListener("click", function (e) { if (e.target === $("welcome")) showWelcome(false); });
+    showWelcome(true);
 
     $("thanksNew").onclick = function () {
       state.submitted = false;
