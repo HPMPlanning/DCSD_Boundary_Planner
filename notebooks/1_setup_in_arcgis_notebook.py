@@ -84,6 +84,7 @@ table_def = {
         text("ms_totals_projected", "Middle school totals (projected)", 2000),
         text("hs_totals_projected", "High school totals (projected)", 2000),
         {"name": "over_capacity", "type": "esriFieldTypeInteger", "alias": "Schools over capacity", "nullable": True, "editable": True},
+        text("plan_link", "Map link", 500),
     ],
     "templates": [{"name": "Plan", "description": "", "drawingTool": "esriFeatureEditToolNone",
                    "prototype": {"attributes": {}}}],
