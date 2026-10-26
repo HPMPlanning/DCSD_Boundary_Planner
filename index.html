@@ -314,8 +314,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=48"></script>
-  <script src="planner-core.js?v=48"></script>
+  <script src="config.js?v=49"></script>
+  <script src="planner-core.js?v=49"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -643,7 +643,7 @@
               symbol: { type: "text", color: "#231e1f", haloColor: "#ffffff", haloSize: 2, font: { size: 11, weight: "bold" } } }]
           });
           map.add(ptsLayer);
-          addElementaryPoints(fs.features, best.fld);
+          addElementaryPoints(fs.features, best.fld, src, where);
           renderPanel();
         });
       }).catch(function (e) {
@@ -653,19 +653,38 @@
     }
     // Elementary school locations inside the planner's zones: black rings, no labels
     // (the zones are already labeled)
-    function addElementaryPoints(features, fld) {
+    function addElementaryPoints(features, fld, src, where) {
       var zones = mapZones();
-      var pts = features.filter(function (g) {
+      function nameMatch(words) {
+        return words.indexOf("ms") < 0 && words.indexOf("hs") < 0 && zones.some(function (z) {
+          var k = zkey(z.name).split(" ").filter(Boolean);
+          return k.length && k.length <= 3 && k.every(function (t) { return words.indexOf(t) >= 0; });
+        });
+      }
+      function inZone(g) { return zones.some(function (z) { return geometryEngine.contains(z.geometry, g.geometry); }); }
+      // Named like an elementary school or with an elementary grade range, inside a zone;
+      // or named like one of the zones (e.g. Oakcliff Theme), wherever its building is
+      function keep(g) {
+        if (!g.geometry) return false;
         var a = g.attributes, grade = String(a.Grade || a.GRADE || a.Grades || "");
         var words = normName(a[fld]).split(" ");
-        // Named like an elementary school, an elementary grade range, or named like one of the zones (e.g. Oakcliff Theme)
-        var isEs = words.indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade) ||
-          words.indexOf("ms") < 0 && words.indexOf("hs") < 0 && zones.some(function (z) {
-            var k = zkey(z.name).split(" ").filter(Boolean);
-            return k.length && k.length <= 3 && k.every(function (t) { return words.indexOf(t) >= 0; });
-          });
-        return isEs && g.geometry && zones.some(function (z) { return geometryEngine.contains(z.geometry, g.geometry); });
-      });
+        if (nameMatch(words)) return true;
+        return (words.indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade)) && inZone(g);
+      }
+      var pts = features.filter(keep);
+      // Theme and choice schools may be left out by the attendance-area filter, so look
+      // again without it for points named like a zone
+      if (src && where && where !== "1=1") {
+        var q = src.createQuery();
+        q.where = "1=1"; q.outFields = ["*"]; q.returnGeometry = true; q.outSpatialReference = pts.length ? pts[0].geometry.spatialReference : view.spatialReference;
+        src.queryFeatures(q).then(function (fs) {
+          var seen = {};
+          features.forEach(function (g) { seen[normName(g.attributes[fld])] = 1; });
+          var more = fs.features.filter(function (g) { return !seen[normName(g.attributes[fld])] && g.geometry && nameMatch(normName(g.attributes[fld]).split(" ")); });
+          addElementaryPoints(pts.concat(more), fld);
+        }).catch(function () { addElementaryPoints(pts, fld); });
+        return;
+      }
       if (!pts.length) return;
       var esLayer = new FeatureLayer({
         source: pts.map(function (g, i) { return new Graphic({ geometry: g.geometry, attributes: { oid: i + 1 } }); }),
