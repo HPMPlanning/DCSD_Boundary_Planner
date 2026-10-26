@@ -314,8 +314,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=49"></script>
-  <script src="planner-core.js?v=49"></script>
+  <script src="config.js?v=50"></script>
+  <script src="planner-core.js?v=50"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -757,7 +757,9 @@
       var unit = level === "MS" ? "Middle Students" : "High Students";
       return [{
         labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' " + unit + "'" },
-        symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
+        symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } },
+        // Every zone keeps its label, even where a school point sits under it
+        deconflictionStrategy: "none"
       }];
     }
     function rendererFor(level) {
