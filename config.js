@@ -1,7 +1,7 @@
 // Boundary Planner settings.
 // Leave zonesLayerUrl empty to run with built-in demo zones.
 window.PLANNER_CONFIG = {
-  title: "Community Boundary Builder",
+  title: "Community Boundary Builder (Engagement Session 3 Option A Only)",
   intro:
     "Pick a school, then click elementary zones on the map to assign them. " +
     "Double-click a zone to unassign it.",
@@ -43,6 +43,8 @@ window.PLANNER_CONFIG = {
   // Public add-only table that receives plans, ending in /FeatureServer/0.
   // Leave empty to allow CSV download only.
   submissionsTableUrl: "",
+  // Submitted plans open in the person's email app, addressed here (used instead of the table when set)
+  submitEmail: "redistricting@dekalbschoolsga.org",
 
   // Field names in the zones layer. "" means the layer doesn't have it.
   fields: {

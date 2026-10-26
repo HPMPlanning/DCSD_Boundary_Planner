@@ -160,6 +160,8 @@
     }
     #uc { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; box-sizing: border-box; color: var(--ink); font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; }
     #uc[hidden] { display: none; }
+    #mapHead h1 .sub { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+    #mailText { width: 100%; box-sizing: border-box; font: 12px/1.4 Consolas, monospace; padding: 8px; border: 1px solid var(--line); resize: vertical; }
     .pmark { color: var(--ink); }
     .slist { display: flex; flex-direction: column; gap: 1px; background: #e2dfd8; border: 1px solid #c9c5bc; border-radius: 3px; overflow: hidden; }
     .sitem { display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box; min-height: 40px; text-align: left; padding: 7px 10px 5px; border: 0; border-radius: 0; background: #fff; cursor: pointer; font: inherit; color: var(--ink); }
@@ -266,8 +268,14 @@
         </div>
       </div>
       <div id="thanks" class="scroll" hidden tabindex="-1">
-        <h2 class="serif">Thank you, your plan was submitted</h2>
+        <h2 class="serif" id="thanksTitle">Thank you, your plan was submitted</h2>
         <p>Your plan ID is <span class="pid" id="thanksId"></span>.</p>
+        <div id="thanksMail" hidden>
+          <p>Your email app should open with your plan filled in, addressed to <b id="mailTo"></b>. Press Send in your email to submit it.</p>
+          <p>If it didn't open, or the plan looks cut off, your plan is also copied: paste it into an email to <b id="mailTo2"></b>.</p>
+          <textarea id="mailText" readonly rows="8" aria-label="Your plan as text"></textarea>
+          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn">Copy plan</button><button id="mailAgain" class="btn">Open email again</button></div>
+        </div>
         <ul id="thanksNext"></ul>
         <div class="actions" style="margin-bottom:16px"><button id="thanksCsv" class="btn">Download my plan</button><button id="thanksNew" class="btn primary">Make another plan</button></div>
       </div>
@@ -281,8 +289,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=44"></script>
-  <script src="planner-core.js?v=44"></script>
+  <script src="config.js?v=45"></script>
+  <script src="planner-core.js?v=45"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -317,7 +325,10 @@
     var HAS_PROJ = !C.zonesLayerUrl || !!(F.msProjected && F.hsProjected);
     var state = { level: "MS", brush: null, zones: [], schools: [], assign: { MS: {}, HS: {} }, history: [], submitted: false };
     var $ = function (id) { return document.getElementById(id); };
-    $("title").textContent = C.title;
+    // A trailing "(...)" in the title shows as a smaller second line
+    var tm2 = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(C.title);
+    $("title").textContent = tm2 ? tm2[1] : C.title;
+    if (tm2) { var sub = document.createElement("span"); sub.className = "sub"; sub.textContent = tm2[2]; $("title").appendChild(sub); }
     $("intro").textContent = C.intro;
     document.title = C.title;
 
@@ -591,7 +602,13 @@
       var zones = mapZones();
       var pts = features.filter(function (g) {
         var a = g.attributes, grade = String(a.Grade || a.GRADE || a.Grades || "");
-        var isEs = normName(a[fld]).split(" ").indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade);
+        var words = normName(a[fld]).split(" ");
+        // Named like an elementary school, an elementary grade range, or named like one of the zones (e.g. Oakcliff Theme)
+        var isEs = words.indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade) ||
+          words.indexOf("ms") < 0 && words.indexOf("hs") < 0 && zones.some(function (z) {
+            var k = zkey(z.name).split(" ").filter(Boolean);
+            return k.length && k.length <= 3 && k.every(function (t) { return words.indexOf(t) >= 0; });
+          });
         return isEs && g.geometry && zones.some(function (z) { return geometryEngine.contains(z.geometry, g.geometry); });
       });
       if (!pts.length) return;
@@ -1042,8 +1059,30 @@
     }
 
     // ---------- CSV ----------
+    // A readable CSV: each elementary zone with its schools, the programs' hosts, then each school's totals
+    function planCsv() {
+      var c = P.csvCell, lines = [["Elementary zone", "Middle school", "High school", "Students in grades 6-8", "Students in grades 9-12"].join(",")];
+      mapZones().slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (z) {
+        lines.push([z.name, nameOf(state.assign.MS[z.id] || ""), nameOf(state.assign.HS[z.id] || ""), z.msC, z.hsC].map(c).join(","));
+      });
+      ["MS", "HS"].forEach(function (level) {
+        programsFor(level).forEach(function (z) {
+          var host = nameOf(state.assign[level][z.id] || "") || "Not assigned";
+          lines.push([programLabel(z) + (level === "MS" ? " (middle school)" : " (high school)"), level === "MS" ? host : "", level === "HS" ? host : "",
+            level === "MS" ? progStudents(z) : "", level === "HS" ? progStudents(z) : ""].map(c).join(","));
+        });
+      });
+      lines.push("", ["School", "Level", "Students", "Seats", "Percent of capacity"].join(","));
+      ["MS", "HS"].forEach(function (level) {
+        totalsFor(level, "C").rows.forEach(function (r) {
+          lines.push([r.school.name, level === "MS" ? "Middle" : "High", r.students, r.capacity, r.pct + "%"].map(c).join(","));
+        });
+      });
+      return lines.join("\r\n") + "\r\n";
+    }
+
     function downloadCsv(planId) {
-      var csv = P.buildCsv(state.zones, state.assign.MS, state.assign.HS, state.schools, planId || "draft");
+      var csv = planCsv();
       var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       var a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -1091,6 +1130,7 @@
       // A school counts as over if it is over capacity now or projected
       var allNow = tm.rows.concat(th.rows), allProj = tmp.rows.concat(thp.rows);
       var over = allNow.filter(function (r, i) { return r.status === "over" || (HAS_PROJ && allProj[i].status === "over"); });
+      if (C.submitEmail) { emailPlan(tm, th, over.length); return; }
       if (!C.submissionsTableUrl) { showMsg("Online submission is not set up yet. Use Download CSV to save your plan.", true); return; }
       // Over-capacity plans are allowed; the count is saved with the plan
       var planId = P.makePlanId();
@@ -1122,6 +1162,58 @@
         btn.disabled = false;
         showMsg("Submission failed: " + (e && e.message ? e.message : e) + " You can still download your plan as a CSV.", true);
       });
+    }
+
+    // ---------- email submission ----------
+    // The plan as plain text: each school with its seats and zones, then the programs
+    function planText(planId, tm, th, overCount) {
+      var out = [C.title, "Plan ID: " + planId, ""];
+      var nm = $("nameIn").value.trim(), em = $("emailIn").value.trim(), cm = $("commentIn").value.trim();
+      if (nm) out.push("Name: " + nm);
+      if (em) out.push("Email: " + em);
+      if (cm) out.push("Comments: " + cm);
+      if (nm || em || cm) out.push("");
+      [["MS", tm, "MIDDLE SCHOOLS"], ["HS", th, "HIGH SCHOOLS"]].forEach(function (x) {
+        var level = x[0], a = state.assign[level];
+        out.push(x[2]);
+        x[1].rows.forEach(function (r) {
+          // Zone names without the "ES" every one of them carries, to keep the email short
+          var zs = mapZones().filter(function (z) { return a[z.id] === r.school.id; })
+            .map(function (z) { return z.name.replace(/\s+ES\b/g, ""); }).sort();
+          out.push(r.school.name + " (" + r.students + "/" + r.capacity + " seats, " + r.pct + "%): " + (zs.join("; ") || "no zones"));
+        });
+        programsFor(level).forEach(function (z) { out.push(programLabel(z) + ": " + (a[z.id] ? nameOf(a[z.id]) : "not assigned")); });
+        out.push("");
+      });
+      out.push("Elementary zone names are shown without \"ES\". Schools over capacity: " + overCount);
+      return out.join("\n");
+    }
+    function mailHref(planId, body) {
+      return "mailto:" + C.submitEmail + "?subject=" + encodeURIComponent("Boundary plan " + planId) + "&body=" + encodeURIComponent(body);
+    }
+    function openMail(href) {
+      var a = document.createElement("a"); a.href = href; a.target = "_blank"; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    function emailPlan(tm, th, overCount) {
+      var planId = P.makePlanId(), body = planText(planId, tm, th, overCount), href = mailHref(planId, body);
+      // Some email apps cut long messages, so the plan also goes on the clipboard to paste in
+      try { if (navigator.clipboard) navigator.clipboard.writeText(body).catch(function () {}); } catch (e) {}
+      openMail(href);
+      state.submitted = true;
+      showMsg("", false);
+      showThanks(planId);
+      $("thanksTitle").textContent = "Almost done: send the email";
+      $("mailTo").textContent = C.submitEmail;
+      $("mailTo2").textContent = C.submitEmail;
+      $("mailText").value = body;
+      $("mailAgain").onclick = function () { openMail(href); };
+      $("mailCopy").onclick = function () {
+        var t = $("mailText"); t.select();
+        (navigator.clipboard ? navigator.clipboard.writeText(body) : Promise.reject()).catch(function () { document.execCommand("copy"); })
+          .then(function () { $("mailCopy").textContent = "Copied"; });
+      };
+      $("thanksMail").hidden = false;
     }
 
     function showThanks(planId) {
