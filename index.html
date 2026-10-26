@@ -1205,7 +1205,8 @@
         hs_plan: P.encodePlan(state.zones, state.assign.HS).slice(0, 10000),
         ms_totals: P.totalsText(tm).slice(0, 2000),
         hs_totals: P.totalsText(th).slice(0, 2000),
-        over_capacity: over.length
+        over_capacity: over.length,
+        plan_link: planLink().slice(0, 500)
       };
       // Projected totals only when the layer has projections, so a table without those fields still works
       if (HAS_PROJ) { attrs.ms_totals_projected = P.totalsText(tmp).slice(0, 2000); attrs.hs_totals_projected = P.totalsText(thp).slice(0, 2000); }
