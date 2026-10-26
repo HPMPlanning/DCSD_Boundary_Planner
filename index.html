@@ -314,8 +314,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=50"></script>
-  <script src="planner-core.js?v=50"></script>
+  <script src="config.js?v=51"></script>
+  <script src="planner-core.js?v=51"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -753,11 +753,19 @@
     }
 
     // Zone labels: the name, then the students for the tab, e.g. "245 Middle Students"
+    // Zoomed out: small name-only labels that hide where they'd collide.
+    // Zoomed in past labelDetailScale: name and students, always shown.
     function zoneLabels(level) {
-      var unit = level === "MS" ? "Middle Students" : "High Students";
+      var unit = level === "MS" ? "Middle Students" : "High Students", cut = C.labelDetailScale || 400000;
+      var halo = { color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5 };
       return [{
+        labelExpressionInfo: { expression: "$feature.name" },
+        symbol: Object.assign({ type: "text", font: { size: 8, weight: "bold" } }, halo),
+        minScale: 0, maxScale: cut
+      }, {
         labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' " + unit + "'" },
-        symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } },
+        symbol: Object.assign({ type: "text", font: { size: 9, weight: "bold" } }, halo),
+        minScale: cut, maxScale: 0,
         // Every zone keeps its label, even where a school point sits under it
         deconflictionStrategy: "none"
       }];
