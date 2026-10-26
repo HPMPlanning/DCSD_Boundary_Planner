@@ -9,14 +9,14 @@ from arcgis.features import FeatureLayer, FeatureLayerCollection
 gis = GIS("home")
 
 # ---- 1. Edit these ----
-# The elementary zones layer (must be shared publicly so the planner can read it)
-ZONES_LAYER_URL = "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/DEKALBAPPNOTREALDATA/FeatureServer/0"
+# The elementary zones layer the planner reads
+ZONES_LAYER_URL = "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/PrivateCalcTestLayer/FeatureServer/0"
 SERVICE_NAME = "boundary_plan_submissions"
 STAFF_GROUP_ID = ""                          # optional: share the staff view with this group
 
 FIELDS = {  # same names as config.js; "" means the layer doesn't have it
-    "zoneName": "Campus", "zoneId": "",
-    "msCurrent": "SUM_MS_STUD", "hsCurrent": "SUM_HS_STUD",
+    "zoneName": "School_Nam", "zoneId": "",
+    "msCurrent": "Tot_6_8", "hsCurrent": "Tot_9_12",
     "msProjected": "", "hsProjected": "",
     "currentMs": "", "currentHs": "",
 }
