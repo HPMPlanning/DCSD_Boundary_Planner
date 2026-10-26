@@ -92,6 +92,5 @@ window.PLANNER_CONFIG = {
 
   // Where the map opens (DeKalb County); it then fits the zones exactly
   center: [-84.23, 33.77],
-  zoom: 10,
-  labelDetailScale: 400000   // zoomed in closer than this (1:400,000), zone labels add student counts and always show
+  zoom: 10
 };
