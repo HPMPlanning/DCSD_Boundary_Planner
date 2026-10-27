@@ -26,7 +26,7 @@
     .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
     .btn.primary:hover:not(:disabled) { background: #13628a; border-color: #13628a; }
     .btn.primary:disabled { background: #fff; border-color: var(--line); color: #a3abb5; }
-    #legend { position: absolute; right: 12px; top: 50px; z-index: 20; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); padding: 10px 14px; min-width: 200px; font-size: 13px; }
+    #legend { position: absolute; right: 20px; top: calc(100% + 6px); z-index: 20; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); padding: 10px 14px; min-width: 200px; font-size: 13px; }
     #legend[hidden] { display: none; }
     #legend div { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
     #mapWrap { position: relative; flex: 1 1 auto; min-height: 320px; }
@@ -76,9 +76,9 @@
     .sr { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     /* The app fills the window exactly; only the side panel scrolls (phones scroll the page) */
     @media (min-width: 901px) { html, body { overflow: hidden; } }
-    /* Map buttons sit over the map's top-right corner, above the feeder view */
-    .hbtns { position: absolute; top: 12px; right: 12px; z-index: 20; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: calc(100% - 70px); }
-    .hbtns .btn { padding: 6px 10px; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    /* Buttons sit right of the title; when the column is too narrow they wrap to their own row, right-aligned */
+    .hbtns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; flex: 0 1 auto; margin-left: auto; }
+    .hbtns .btn { padding: 6px 10px; font-size: 13px; }
     /* Shrink the logo and title with the map column so they stay on one line */
     #mapCol { container-type: inline-size; }
     @container (max-width: 700px) { #logo { height: 32px; padding-right: 10px; } #mapHead h1 { font-size: 25px; } }
@@ -214,15 +214,15 @@
       <header id="mapHead">
         <img id="logo" src="dcsd-logo.svg" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
-      </header>
-      <div id="mapWrap">
-        <div id="viewDiv" aria-label="Map of elementary zones"></div>
         <div class="hbtns">
           <button id="aboutBtn" class="btn">Instructions</button>
           <button id="feedBtn" class="btn" aria-pressed="false">Feeder patterns</button>
           <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend">Map legend</button>
         </div>
         <div id="legend" hidden></div>
+      </header>
+      <div id="mapWrap">
+        <div id="viewDiv" aria-label="Map of elementary zones"></div>
         <div id="chip" aria-hidden="true"></div>
         <div id="feedView" hidden>
           <div class="fhead"><h2 class="serif">Feeder patterns</h2></div>
@@ -315,8 +315,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=57"></script>
-  <script src="planner-core.js?v=57"></script>
+  <script src="config.js?v=58"></script>
+  <script src="planner-core.js?v=58"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -654,25 +654,37 @@
     }
     // Elementary school locations inside the planner's zones: black rings, no labels
     // (the zones are already labeled)
-    function addElementaryPoints(features, fld, src, where) {
+    function addElementaryPoints(features, fld, src, where, extra) {
       var zones = mapZones();
-      function nameMatch(words) {
-        return words.indexOf("ms") < 0 && words.indexOf("hs") < 0 && zones.some(function (z) {
+      // The zone a point is named after (e.g. "Oakcliff Theme Traditional School" for Oakcliff Theme)
+      function nameZone(words) {
+        if (words.indexOf("ms") >= 0 || words.indexOf("hs") >= 0) return null;
+        return zones.filter(function (z) {
           var k = zkey(z.name).split(" ").filter(Boolean);
           return k.length && k.length <= 3 && k.every(function (t) { return words.indexOf(t) >= 0; });
-        });
+        })[0] || null;
       }
-      function inZone(g) { return zones.some(function (z) { return geometryEngine.contains(z.geometry, g.geometry); }); }
-      // Named like an elementary school or with an elementary grade range, inside a zone;
-      // or named like one of the zones (e.g. Oakcliff Theme), wherever its building is
-      function keep(g) {
-        if (!g.geometry) return false;
+      function inZone(g) { return zones.filter(function (z) { return geometryEngine.contains(z.geometry, g.geometry); })[0] || null; }
+      function isEs(g) {
         var a = g.attributes, grade = String(a.Grade || a.GRADE || a.Grades || "");
-        var words = normName(a[fld]).split(" ");
-        if (nameMatch(words)) return true;
-        return (words.indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade)) && inZone(g);
+        return normName(a[fld]).split(" ").indexOf("es") >= 0 || /^(pk|k|pre)/i.test(grade) && !/(6|7|8|9|12)\s*$/.test(grade);
       }
-      var pts = features.filter(keep);
+      // Elementary schools inside a zone come first. A point that's only named like a zone
+      // (a theme school) is used just for a zone that has no elementary school yet, so other
+      // sites sharing a zone's name (e.g. Fernbank Science Center) are left off.
+      var pts = [], covered = {};
+      features.forEach(function (g) {
+        if (!g.geometry || !isEs(g)) return;
+        var z = nameZone(normName(g.attributes[fld]).split(" ")) || inZone(g);
+        if (!z && !inZone(g)) return;
+        pts.push(g); if (z) covered[z.id] = 1;
+      });
+      // Points the attendance filter left out (extra) are only used this way
+      features.filter(function (g) { return !isEs(g); }).concat(extra || []).forEach(function (g) {
+        if (!g.geometry) return;
+        var z = nameZone(normName(g.attributes[fld]).split(" "));
+        if (z && !covered[z.id]) { pts.push(g); covered[z.id] = 1; }
+      });
       // Theme and choice schools may be left out by the attendance-area filter, so look
       // again without it for points named like a zone
       if (src && where && where !== "1=1") {
@@ -681,9 +693,9 @@
         src.queryFeatures(q).then(function (fs) {
           var seen = {};
           features.forEach(function (g) { seen[normName(g.attributes[fld])] = 1; });
-          var more = fs.features.filter(function (g) { return !seen[normName(g.attributes[fld])] && g.geometry && nameMatch(normName(g.attributes[fld]).split(" ")); });
-          addElementaryPoints(pts.concat(more), fld);
-        }).catch(function () { addElementaryPoints(pts, fld); });
+          var more = fs.features.filter(function (g) { return !seen[normName(g.attributes[fld])] && g.geometry; });
+          addElementaryPoints(features, fld, null, null, more);
+        }).catch(function () { addElementaryPoints(features, fld); });
         return;
       }
       if (!pts.length) return;
