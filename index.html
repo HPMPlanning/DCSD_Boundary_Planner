@@ -313,8 +313,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=55"></script>
-  <script src="planner-core.js?v=55"></script>
+  <script src="config.js?v=56"></script>
+  <script src="planner-core.js?v=56"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -732,6 +732,7 @@
         labelingInfo: zoneLabels(state.level)
       });
       map.add(layer, 0); // under any web map layers, so school points stay visible
+      buildPinLayer();
       layer.when(function () { return layer.queryExtent(); }).then(function (r) {
         return r.extent ? view.goTo(r.extent.expand(1.1), { animate: false }) : null;
       }).catch(function (e) { console.error(e); }).then(showMap);
@@ -758,10 +759,34 @@
         labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' " + unit + "'" },
         symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
       };
-      // Zones in alwaysShowLabels keep their label even where a school's label would hide it
+      // Zones in alwaysShowLabels are labeled by pinLayer instead
       var keep = (C.alwaysShowLabels || []).map(function (n) { return "name LIKE '%" + String(n).replace(/'/g, "''") + "%'"; }).join(" OR ");
-      if (!keep) return [base];
-      return [Object.assign({}, base, { where: "NOT (" + keep + ")" }), Object.assign({}, base, { where: keep, deconflictionStrategy: "none" })];
+      return [keep ? Object.assign(base, { where: "NOT (" + keep + ")" }) : base];
+    }
+    // A separate layer for the alwaysShowLabels zones, so forcing their labels on
+    // doesn't change how the other zone labels hide when crowded
+    var pinLayer = null;
+    function pinLabels(level) {
+      var unit = level === "MS" ? "Middle Students" : "High Students", f = level === "MS" ? "ms" : "hs";
+      return [{
+        labelExpressionInfo: { expression: "$feature.name + TextFormatting.NewLine + $feature." + f + " + ' " + unit + "'" },
+        labelPlacement: "center-center", deconflictionStrategy: "none",
+        symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
+      }];
+    }
+    function buildPinLayer() {
+      var want = (C.alwaysShowLabels || []).map(function (n) { return String(n).toLowerCase(); });
+      var zs = mapZones().filter(function (z) { return want.some(function (w) { return z.name.toLowerCase().indexOf(w) >= 0; }); });
+      if (!zs.length || HAS_PROJ) return;
+      pinLayer = new FeatureLayer({
+        source: zs.map(function (z, i) { return new Graphic({ geometry: z.geometry.centroid, attributes: { oid: i + 1, name: z.name, ms: Math.round(z.msC || 0), hs: Math.round(z.hsC || 0) } }); }),
+        objectIdField: "oid", geometryType: "point", spatialReference: zs[0].geometry.spatialReference,
+        fields: [{ name: "oid", type: "oid" }, { name: "name", type: "string" }, { name: "ms", type: "integer" }, { name: "hs", type: "integer" }],
+        outFields: ["*"], title: "Zone labels", popupEnabled: false, legendEnabled: false,
+        renderer: { type: "simple", symbol: { type: "simple-marker", size: 0, color: [0, 0, 0, 0], outline: { width: 0, color: [0, 0, 0, 0] } } },
+        labelingInfo: pinLabels(state.level)
+      });
+      map.add(pinLayer);
     }
     function rendererFor(level) {
       return {
@@ -795,6 +820,7 @@
       // Each tab remembers the school last picked on it
       state.brush = state.brushes[level] != null ? state.brushes[level] : (list.length ? list[0].id : "");
       if (layer) { layer.renderer = rendererFor(level); layer.labelingInfo = zoneLabels(level); }
+      if (pinLayer) pinLayer.labelingInfo = pinLabels(level);
       if (ptsLayer) ptsLayer.definitionExpression = "level = '" + level + "'";
       refreshLayer();
       renderPanel();
