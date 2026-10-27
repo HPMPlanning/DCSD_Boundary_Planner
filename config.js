@@ -42,7 +42,7 @@ window.PLANNER_CONFIG = {
 
   // Public add-only table that receives plans, ending in /FeatureServer/0.
   // Leave empty to allow CSV download only.
-  submissionsTableUrl: "",
+  submissionsTableUrl: "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/Submissions/FeatureServer",
   // Submitted plans open in the person's email app, addressed here (used instead of the table when set)
   submitEmail: "",
 

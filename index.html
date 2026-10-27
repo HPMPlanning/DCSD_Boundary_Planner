@@ -313,8 +313,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=53"></script>
-  <script src="planner-core.js?v=53"></script>
+  <script src="config.js?v=54"></script>
+  <script src="planner-core.js?v=54"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -1229,9 +1229,26 @@
       // Projected totals only when the layer has projections, so a table without those fields still works
       if (HAS_PROJ) { attrs.ms_totals_projected = P.totalsText(tmp).slice(0, 2000); attrs.hs_totals_projected = P.totalsText(thp).slice(0, 2000); }
       var btn = $("submitBtn"); btn.disabled = true; showMsg("Submitting…", false);
-      esriRequest(C.submissionsTableUrl.replace(/\/$/, "") + "/addFeatures", {
-        method: "post", responseType: "json",
-        query: { f: "json", features: JSON.stringify([{ attributes: attrs }]) }
+      // The URL can be the service or the table itself; only fields the table has are sent
+      var base = C.submissionsTableUrl.replace(/\/$/, "");
+      var findTable = /\/FeatureServer$/i.test(base)
+        ? esriRequest(base, { query: { f: "json" }, responseType: "json" }).then(function (r) {
+            var t = (r.data.tables || []).concat(r.data.layers || [])[0];
+            if (!t) throw new Error("The submissions service has no table.");
+            return base + "/" + t.id;
+          })
+        : Promise.resolve(base);
+      findTable.then(function (url) {
+        return esriRequest(url, { query: { f: "json" }, responseType: "json" }).then(function (r) {
+          var have = {};
+          (r.data.fields || []).forEach(function (f) { have[f.name.toLowerCase()] = f.name; });
+          var send = {};
+          Object.keys(attrs).forEach(function (k) { if (have[k]) send[have[k]] = attrs[k]; });
+          return esriRequest(url + "/addFeatures", {
+            method: "post", responseType: "json",
+            query: { f: "json", features: JSON.stringify([{ attributes: send }]) }
+          });
+        });
       }).then(function (res) {
         var r = res.data && res.data.addResults && res.data.addResults[0];
         if (!r || !r.success) throw new Error((r && r.error && r.error.description) || "The server did not accept the plan.");
