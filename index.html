@@ -313,8 +313,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=54"></script>
-  <script src="planner-core.js?v=54"></script>
+  <script src="config.js?v=55"></script>
+  <script src="planner-core.js?v=55"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -754,10 +754,14 @@
     // Zone labels: the name, then the students for the tab, e.g. "245 Middle Students"
     function zoneLabels(level) {
       var unit = level === "MS" ? "Middle Students" : "High Students";
-      return [{
+      var base = {
         labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' " + unit + "'" },
         symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
-      }];
+      };
+      // Zones in alwaysShowLabels keep their label even where a school's label would hide it
+      var keep = (C.alwaysShowLabels || []).map(function (n) { return "name LIKE '%" + String(n).replace(/'/g, "''") + "%'"; }).join(" OR ");
+      if (!keep) return [base];
+      return [Object.assign({}, base, { where: "NOT (" + keep + ")" }), Object.assign({}, base, { where: keep, deconflictionStrategy: "none" })];
     }
     function rendererFor(level) {
       return {
