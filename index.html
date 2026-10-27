@@ -250,7 +250,7 @@
         </div>
         <div id="dlNote" hidden></div>
       </div>
-      <div id="panelFoot"><button id="reviewBtn" class="btn primary">Review and submit plan</button></div>
+      <div id="panelFoot"><button id="reviewBtn" class="btn primary">Submit plan</button></div>
     </aside>
   </div>
 
@@ -258,14 +258,13 @@
     <div class="box wide">
       <div id="reviewForm">
         <div class="scroll">
-          <h2 id="reviewTitle" class="serif">Review and submit</h2>
+          <h2 id="reviewTitle" class="serif">Submit your plan</h2>
           <label for="nameIn">Name (optional)</label>
           <input id="nameIn" maxlength="100" autocomplete="name">
           <label for="emailIn">Email (optional)</label>
           <input id="emailIn" type="email" maxlength="150" autocomplete="email">
           <label for="commentIn">Comments for the planning team (optional)</label>
           <textarea id="commentIn" maxlength="2000"></textarea>
-          <div id="reviewSummary"></div>
         </div>
         <div class="foot">
           <div id="msg" role="status"></div>
@@ -297,7 +296,7 @@
         <li>Choose a school in the side panel, then click zones on the map to assign them to it. Double-click a zone to unassign it.</li>
         <li>Watch each school's bar. A full bar means the school is at capacity, and the bar and percent turn red when it's over.</li>
         <li>Use the <b>High Achievers Program</b> dropdown to pick which school hosts it. Its students count toward that school.</li>
-        <li>When every zone has a middle and high school, select <b>Review and submit plan</b>.</li>
+        <li>When every zone has a middle and high school, select <b>Submit plan</b>.</li>
       </ol>
       <h3>About "nearest school"</h3>
       <p>The button that fills zones with the nearest school measures a straight line from the center point of each elementary zone to each school. It doesn't use driving distance or where students live within the zone, so treat it as a starting point and adjust from there.</p>
@@ -314,8 +313,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=52"></script>
-  <script src="planner-core.js?v=52"></script>
+  <script src="config.js?v=53"></script>
+  <script src="planner-core.js?v=53"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -1337,33 +1336,13 @@
     }
 
     // Review pop-up: totals for both levels, then the optional contact fields
+    // Just name, email and comments; the plan itself is on the map and side panel
     function openReview() {
-      var box = $("reviewSummary");
-      box.innerHTML = '<div class="plan"><div class="cols"></div></div><div class="plan"><h3>Feeder patterns</h3><div class="feeders"></div></div>';
-      var cols = box.querySelector(".cols"), open = [];
+      var open = [];
       ["MS", "HS"].forEach(function (level) {
-        var tc = totalsFor(level, "C");
-        var tp = totalsFor(level, "P");
-        var col = document.createElement("div");
-        var h = document.createElement("h3"); h.textContent = level === "MS" ? "Middle schools" : "High schools";
-        col.appendChild(h);
-        tc.rows.forEach(function (r, i) {
-          var p = tp.rows[i], over = r.status === "over" || (HAS_PROJ && p.status === "over");
-          var row = document.createElement("div"); row.className = "srow" + (over ? " over" : "");
-          row.innerHTML = '<span class="n"></span><span class="v"><span class="c"></span><b></b></span><div class="bar"><span></span><i></i></div>';
-          row.querySelector(".n").textContent = r.school.name;
-          row.querySelector(".c").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
-          row.querySelector("b").textContent = r.pct + "%" + (HAS_PROJ ? ", proj. " + p.pct + "%" : "");
-          var fill = row.querySelector(".bar span");
-          fill.style.width = Math.min(r.pct, 125) / 1.25 + "%";
-          fill.style.background = r.status === "over" ? "var(--over)" : r.school.color;
-          row.querySelector(".bar i").style.left = (100 / 1.25) + "%";
-          col.appendChild(row);
-        });
-        cols.appendChild(col);
-        if (tc.unassigned.zones) open.push(tc.unassigned.zones + " " + (level === "MS" ? "middle" : "high"));
+        var u = totalsFor(level, "C").unassigned.zones;
+        if (u) open.push(u + " " + (level === "MS" ? "middle" : "high"));
       });
-      renderFeeders(box.querySelector(".feeders"));
       $("submitBtn").disabled = !!open.length || state.submitted;
       showMsg(open.length ? "Assign every zone before submitting (" + open.join(" and ") + " school zones still open)." : "", true);
       $("reviewForm").hidden = false; $("thanks").hidden = true;
