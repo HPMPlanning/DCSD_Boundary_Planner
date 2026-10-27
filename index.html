@@ -79,10 +79,20 @@
     /* Buttons sit right of the title; when the column is too narrow they wrap to their own row, right-aligned */
     .hbtns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; flex: 0 1 auto; margin-left: auto; }
     .hbtns .btn { padding: 6px 10px; font-size: 13px; }
+    #menuBtn { display: none; margin-left: auto; padding: 6px 12px; font-size: 13px; }
+    /* When the buttons don't fit beside the title (small laptops, tablets, phones) they fold into a Menu */
+    @container (max-width: 940px) {
+      #menuBtn { display: inline-flex; gap: 6px; align-items: center; }
+      .hbtns { display: none; position: absolute; right: 20px; top: calc(100% + 6px); z-index: 21; flex-direction: column; align-items: stretch; gap: 0; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); min-width: 190px; padding: 4px 0; }
+      #mapHead.menu-open .hbtns { display: flex; }
+      .hbtns .btn { border: 0; text-align: left; padding: 10px 16px; font-size: 14px; }
+      .hbtns .btn:hover { background: #f4f3ef; }
+    }
     /* Shrink the logo and title with the map column so they stay on one line */
     #mapCol { container-type: inline-size; }
-    @container (max-width: 700px) { #logo { height: 32px; padding-right: 10px; } #mapHead h1 { font-size: 25px; } }
-    @container (max-width: 470px) { #logo { height: 28px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } }
+    @container (max-width: 700px) { #logo { height: 32px; padding-right: 10px; } #mapHead h1 { font-size: 23px; }
+      #mapHead { padding-right: 112px; } #menuBtn { position: absolute; top: 12px; right: 16px; } }
+    @container (max-width: 640px) { #logo { height: 28px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } #mapHead { padding-right: 16px; } }
     #warnings { font-size: 13px; color: var(--over); margin-bottom: 10px; line-height: 1.45; }
     #warnings:empty { display: none; }
     #warnings ul { margin: 6px 0 0; padding-left: 18px; }
@@ -214,7 +224,8 @@
       <header id="mapHead">
         <img id="logo" src="dcsd-logo.svg" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
-        <div class="hbtns">
+        <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
+        <div class="hbtns" id="hbtns">
           <button id="aboutBtn" class="btn">Instructions</button>
           <button id="feedBtn" class="btn" aria-pressed="false">Feeder patterns</button>
           <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend">Map legend</button>
@@ -315,8 +326,8 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=58"></script>
-  <script src="planner-core.js?v=58"></script>
+  <script src="config.js?v=59"></script>
+  <script src="planner-core.js?v=59"></script>
   <div id="uc" hidden>
     <img src="dcsd-logo.svg" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
@@ -1422,7 +1433,7 @@
       if (show) $("welcomeBox").focus(); else $("aboutBtn").focus();
     }
     $("welcomeOk").onclick = function () { showWelcome(false); };
-    $("aboutBtn").onclick = function () { showWelcome(true); };
+    $("aboutBtn").onclick = function () { closeMenu(); showWelcome(true); };
     $("welcome").addEventListener("keydown", function (e) { if (e.key === "Escape") showWelcome(false); });
     $("welcome").addEventListener("click", function (e) { if (e.target === $("welcome")) showWelcome(false); });
     if (!PLAN_PARAM) showWelcome(true);
@@ -1447,15 +1458,24 @@
     $("submitBtn").onclick = submitPlan;
     $("reviewBtn").onclick = openReview;
     $("reviewBack").onclick = function () { $("review").hidden = true; };
-    $("feedBtn").onclick = function () { toggleFeeders($("feedView").hidden); };
+    $("feedBtn").onclick = function () { closeMenu(); toggleFeeders($("feedView").hidden); };
+    function closeMenu() { $("mapHead").classList.remove("menu-open"); $("menuBtn").setAttribute("aria-expanded", "false"); }
+    $("menuBtn").onclick = function (e) {
+      e.stopPropagation();
+      var open = !$("mapHead").classList.contains("menu-open");
+      $("mapHead").classList.toggle("menu-open", open); this.setAttribute("aria-expanded", String(open));
+      if (open) $("legend").hidden = true;
+    };
+    document.addEventListener("click", function (e) { if (!e.target.closest || !e.target.closest("#hbtns")) closeMenu(); });
     window.addEventListener("resize", function () { if (!$("feedView").hidden) drawFeederDiagram(); });
     $("legendBtn").onclick = function () {
+      closeMenu();
       var lg = $("legend"); lg.hidden = !lg.hidden;
       this.setAttribute("aria-expanded", String(!lg.hidden));
     };
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
-      $("legend").hidden = true;
+      $("legend").hidden = true; closeMenu();
       if (!$("review").hidden && !state.submitted) $("review").hidden = true;
     });
   });
