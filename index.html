@@ -18,7 +18,7 @@
     #app { display: flex; height: 100%; }
     #mapCol { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
     #mapHead { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: #fff; }
-    #logo { height: 40px; width: auto; flex: 0 0 auto; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
+    #logo { height: 60px; width: auto; flex: 0 0 auto; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
     #mapHead h1 { flex: 0 1 auto; white-space: nowrap; margin: 0; font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-size: 30px; font-weight: 400; letter-spacing: .02em; line-height: 1; color: var(--ink); }
     .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 2px; cursor: pointer; font-size: 14px; }
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
@@ -81,7 +81,7 @@
     .hbtns .btn { padding: 6px 10px; font-size: 13px; }
     #menuBtn { display: none; margin-left: auto; padding: 6px 12px; font-size: 13px; }
     /* When the buttons don't fit beside the title (small laptops, tablets, phones) they fold into a Menu */
-    @container (max-width: 940px) {
+    @container (max-width: 840px) {
       #menuBtn { display: inline-flex; gap: 6px; align-items: center; }
       .hbtns { display: none; position: absolute; right: 20px; top: calc(100% + 6px); z-index: 21; flex-direction: column; align-items: stretch; gap: 0; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); min-width: 190px; padding: 4px 0; }
       #mapHead.menu-open .hbtns { display: flex; }
@@ -90,9 +90,9 @@
     }
     /* Shrink the logo and title with the map column so they stay on one line */
     #mapCol { container-type: inline-size; }
-    @container (max-width: 700px) { #logo { height: 32px; padding-right: 10px; } #mapHead h1 { font-size: 23px; }
+    @container (max-width: 700px) { #logo { height: 52px; padding-right: 10px; } #mapHead h1 { font-size: 23px; }
       #mapHead { padding-right: 112px; } #menuBtn { position: absolute; top: 12px; right: 16px; } }
-    @container (max-width: 640px) { #logo { height: 28px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } #mapHead { padding-right: 16px; } }
+    @container (max-width: 470px) { #logo { height: 48px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } #mapHead { padding-right: 16px; } }
     #warnings { font-size: 13px; color: var(--over); margin-bottom: 10px; line-height: 1.45; }
     #warnings:empty { display: none; }
     #warnings ul { margin: 6px 0 0; padding-left: 18px; }
@@ -152,7 +152,7 @@
     details.feeders summary { cursor: pointer; font-weight: 700; font-size: 15px; }
     details.feeders .note { font-size: 12px; color: var(--muted); margin: 6px 0 2px; }
     @media (max-width: 560px) { .cols { grid-template-columns: 1fr; } }
-    @media (max-width: 560px) { #logo { height: 28px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } }
+    @media (max-width: 560px) { #logo { height: 48px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } }
     label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
     input, textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 2px; font: inherit; font-size: 14px; }
     textarea { min-height: 80px; resize: vertical; }
@@ -222,7 +222,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=60" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -326,10 +326,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=59"></script>
-  <script src="planner-core.js?v=59"></script>
+  <script src="config.js?v=60"></script>
+  <script src="planner-core.js?v=60"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=60" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
