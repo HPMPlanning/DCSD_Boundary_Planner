@@ -14,7 +14,8 @@
   function computeTotals(zones, assign, schools, level, basis) {
     var key = (level === "MS" ? "ms" : "hs") + (basis === "P" ? "P" : "C");
     var rows = schoolsFor(schools, level).map(function (s) {
-      return { school: s, students: 0, zones: 0 };
+      // Non-resident attendees are locked to their school and always counted
+      return { school: s, students: s.nonResident || 0, nonResident: s.nonResident || 0, zones: 0 };
     });
     var byId = {};
     rows.forEach(function (r) { byId[r.school.id] = r; });
@@ -98,7 +99,7 @@
       if (!name || !level) { errors.push("A school in config.js is missing its name or level (MS or HS)."); return; }
       if (!(cap > 0)) { errors.push(name + " needs a capacity greater than 0 in config.js."); return; }
       if (found[key(level, name)]) { errors.push(name + " is listed twice in config.js."); return; }
-      found[key(level, name)] = { id: name, name: name, level: level, capacity: cap, color: x.color, planned: !!x.planned };
+      found[key(level, name)] = { id: name, name: name, level: level, capacity: cap, color: x.color, planned: !!x.planned, nonResident: Math.max(0, Number(x.nonResident) || 0) };
     });
     var missing = {};
     zones.forEach(function (z) {

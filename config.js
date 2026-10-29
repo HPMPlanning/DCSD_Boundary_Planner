@@ -65,20 +65,21 @@ window.PLANNER_CONFIG = {
   // Optional: color: "#1f77b4"
   // Each middle school shares the color of the high school it feeds today
   // (Cross Keys HS has no middle school of its own).
+  // nonResident: students who attend from outside the zones; locked to the school and always counted
   schools: [
-    { name: "Chamblee MS", color: "#1f77b4", level: "MS", capacity: 1080 },
-    { name: "Druid Hills MS", color: "#2ca02c", level: "MS", capacity: 1170 },
-    { name: "Henderson MS", color: "#9467bd", level: "MS", capacity: 1590 },
-    { name: "Peachtree MS", color: "#17becf", level: "MS", capacity: 1230 },
-    { name: "Sequoyah MS", color: "#e377c2", level: "MS", capacity: 1170 },
-    { name: "Tucker MS", color: "#8c564b", level: "MS", capacity: 1170 },
-    { name: "Chamblee HS", color: "#1f77b4", level: "HS", capacity: 1705 },
-    { name: "Cross Keys HS", color: "#ff7f0e", level: "HS", capacity: 1400 },
-    { name: "Druid Hills HS", color: "#2ca02c", level: "HS", capacity: 1395 },
-    { name: "Dunwoody HS", color: "#17becf", level: "HS", capacity: 1550 },
-    { name: "Lakeside HS", color: "#9467bd", level: "HS", capacity: 1705 },
-    { name: "Sequoyah HS", color: "#e377c2", level: "HS", capacity: 1600, planned: true }, // not built; starts with no zones (planned only affects the demo map)
-    { name: "Tucker HS", color: "#8c564b", level: "HS", capacity: 1736 }
+    { name: "Chamblee MS", color: "#1f77b4", level: "MS", capacity: 1080, nonResident: 32 },
+    { name: "Druid Hills MS", color: "#2ca02c", level: "MS", capacity: 1170, nonResident: 88 },
+    { name: "Henderson MS", color: "#9467bd", level: "MS", capacity: 1590, nonResident: 77 },
+    { name: "Peachtree MS", color: "#17becf", level: "MS", capacity: 1230, nonResident: 44 },
+    { name: "Sequoyah MS", color: "#e377c2", level: "MS", capacity: 1170, nonResident: 36 },
+    { name: "Tucker MS", color: "#8c564b", level: "MS", capacity: 1170, nonResident: 87 },
+    { name: "Chamblee HS", color: "#1f77b4", level: "HS", capacity: 1705, nonResident: 46 },
+    { name: "Cross Keys HS", color: "#ff7f0e", level: "HS", capacity: 1400, nonResident: 57 },
+    { name: "Druid Hills HS", color: "#2ca02c", level: "HS", capacity: 1395, nonResident: 91 },
+    { name: "Dunwoody HS", color: "#17becf", level: "HS", capacity: 1550, nonResident: 76 },
+    { name: "Lakeside HS", color: "#9467bd", level: "HS", capacity: 1705, nonResident: 80 },
+    { name: "Sequoyah HS", color: "#e377c2", level: "HS", capacity: 1600, nonResident: 60, planned: true }, // not built; starts with no zones (planned only affects the demo map)
+    { name: "Tucker HS", color: "#8c564b", level: "HS", capacity: 1736, nonResident: 169 }
   ],
 
   // Start each plan from today's assignments (true) or blank (false)

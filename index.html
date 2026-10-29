@@ -222,7 +222,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=60" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=61" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -314,7 +314,7 @@
       <h3>About "nearest school"</h3>
       <p>The button that fills zones with the nearest school measures a straight line from the center point of each elementary zone to each school. It doesn't use driving distance or where students live within the zone, so treat it as a starting point and adjust from there.</p>
       <h3>About the numbers</h3>
-      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone.</p>
+      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone. Each school's total also includes a fixed number of <b>non-resident students</b> who attend from outside these zones. They stay at their school in every plan.</p>
       <div class="actions"><button id="welcomeOk" class="btn primary">Get started</button></div>
     </div>
   </div>
@@ -326,10 +326,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=60"></script>
-  <script src="planner-core.js?v=60"></script>
+  <script src="config.js?v=61"></script>
+  <script src="planner-core.js?v=61"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=60" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=61" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -914,7 +914,7 @@
         var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
         b.appendChild(capBar(r.school.color, r.students - extra, extra, r.capacity, false));
         if (HAS_PROJ) b.appendChild(meter("Projected", rp));
-        b.title = r.zones + " zones";
+        b.title = r.zones + " zones" + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
         list.appendChild(b);
       });
