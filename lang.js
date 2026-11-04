@@ -101,7 +101,7 @@
     menu: '<span aria-hidden="true">&#9776;</span> Menú',
     about: "Instrucciones",
     feed: "Patrones de continuidad escolar",
-    legend: "Leyenda del mapa",
+    legend: "Leyenda",
     feedTitle: "Patrones de continuidad escolar",
     feedKey: '<span class="pmark">★</span> Sede del programa de alto rendimiento académico',
     tabMS: "Escuela intermedia",
