@@ -197,6 +197,13 @@
     .cbar { position: relative; display: block; height: 9px; width: 100%; }
     .cbar .trk { position: absolute; left: 0; right: 0; top: 2px; height: 5px; background: #eceae4; overflow: hidden; display: flex; }
     .cbar .trk span { height: 100%; }
+    .cbar .trk .nr { background: #8f8b82; }
+    .nrline { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: #6b6862; }
+    .nrline svg, .nrkey svg { flex: none; }
+    .nrkey { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 10px; padding: 8px 10px; background: #f5f4f0; border: 1px solid #e2dfd8; border-radius: 3px; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+    .nrkey[hidden] { display: none; }
+    .nrkey .kbar { flex: none; width: 18px; height: 5px; margin-top: 6px; background: #8f8b82; }
+    .nrkey b { color: var(--ink); }
     .cbar.sm { height: 7px; } .cbar.sm .trk { height: 3px; }
     .hacard { position: relative; display: block; margin-top: 8px; border: 1px solid #c9c5bc; border-radius: 3px; background: #fff; }
     .hacard:hover, .hacard:focus-within { border-color: var(--ink); }
@@ -222,7 +229,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=61" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=62" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -253,6 +260,7 @@
           <button id="tabHS" role="tab">High school</button>
         </div>
         <div class="sechead"><h2>Choose a school</h2></div>
+        <div id="nrKey" class="nrkey" hidden></div>
         <div id="schools"></div>
         <div id="unassigned" class="callout"></div>
         <div id="last" class="sr" role="status"></div>
@@ -314,7 +322,7 @@
       <h3>About "nearest school"</h3>
       <p>The button that fills zones with the nearest school measures a straight line from the center point of each elementary zone to each school. It doesn't use driving distance or where students live within the zone, so treat it as a starting point and adjust from there.</p>
       <h3>About the numbers</h3>
-      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone. Each school's total also includes a fixed number of <b>non-resident students</b> who attend from outside these zones. They stay at their school in every plan.</p>
+      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone. Each school's total also includes a fixed number of <b>non-resident students</b> who attend from outside these zones. They're locked to their school in every plan, which is why schools already show some students before you assign any zones. They show as the gray part of each school's bar.</p>
       <div class="actions"><button id="welcomeOk" class="btn primary">Get started</button></div>
     </div>
   </div>
@@ -326,10 +334,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=61"></script>
-  <script src="planner-core.js?v=61"></script>
+  <script src="config.js?v=62"></script>
+  <script src="planner-core.js?v=62"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=61" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=62" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -912,13 +920,20 @@
         }
         b.querySelector(".seats").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
         var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
-        b.appendChild(capBar(r.school.color, r.students - extra, extra, r.capacity, false));
+        b.appendChild(capBar(r.school.color, r.students - extra - r.nonResident, extra, r.capacity, false, r.nonResident));
+        if (r.nonResident) {
+          var nl = document.createElement("span"); nl.className = "nrline";
+          nl.innerHTML = LOCK_SVG;
+          nl.appendChild(document.createTextNode(r.nonResident.toLocaleString() + " non-resident students already counted" + (r.zones ? "" : ", no zones yet")));
+          b.appendChild(nl);
+        }
         if (HAS_PROJ) b.appendChild(meter("Projected", rp));
-        b.title = r.zones + " zones" + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
+        b.title = r.zones + (r.zones === 1 ? " zone" : " zones") + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
         list.appendChild(b);
       });
       box.appendChild(list);
+      renderNrKey(tc.rows);
       progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
       var e = document.createElement("button");
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
@@ -957,15 +972,29 @@
     function programLabel(z) { var p = PROGRAMS.filter(function (x) { return x.level === z.program; })[0]; return (p && p.label) || z.name; }
 
     // Capacity bar: a program's students show hatched after the school's own
-    function capBar(color, base, extra, cap, small) {
+    var LOCK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="1"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>';
+
+    // Explains the gray, locked part of each bar, so schools showing students on a blank map make sense
+    function renderNrKey(rows) {
+      var k = $("nrKey"), any = rows.some(function (r) { return r.nonResident; });
+      k.hidden = !any;
+      if (!any) return;
+      k.innerHTML = '<span class="kbar" aria-hidden="true"></span><span><b>Why schools don\'t start at zero:</b> the gray part of each bar is <b>non-resident students</b> who attend from outside these zones. They\'re locked to their school and counted in every plan, so you can\'t move them. Assign zones to add the students who live in them.</span>';
+    }
+
+    function capBar(color, base, extra, cap, small, locked) {
       // The bar's right end is 100% of capacity; a school over capacity shows a full red bar
       var w = function (n) { return cap > 0 ? Math.min(n / cap, 1) * 100 : 0; };
-      if (base + extra > cap) color = "#c8102e";
+      locked = locked || 0;
+      var over = locked + base + extra > cap;
+      if (over) color = "#c8102e";
       var bar = document.createElement("span"); bar.className = "cbar" + (small ? " sm" : "");
-      bar.innerHTML = '<span class="trk"><span class="base"></span><span class="ha"></span></span>';
-      var bw = w(base);
+      bar.innerHTML = '<span class="trk"><span class="nr"></span><span class="base"></span><span class="ha"></span></span>';
+      var lw = w(locked);
+      bar.querySelector(".nr").style.cssText = "width:" + lw + "%" + (over ? ";background:" + color : "");
+      var bw = Math.max(0, w(locked + base) - lw);
       bar.querySelector(".base").style.cssText = "width:" + bw + "%;background:" + color;
-      bar.querySelector(".ha").style.cssText = "width:" + Math.max(0, w(base + extra) - bw) + "%;background:repeating-linear-gradient(135deg," + color + " 0 " + (small ? 2 : 3) + "px," + cssRgba(color, 0.35) + " " + (small ? 2 : 3) + "px " + (small ? 4 : 6) + "px)";
+      bar.querySelector(".ha").style.cssText = "width:" + Math.max(0, w(locked + base + extra) - lw - bw) + "%;background:repeating-linear-gradient(135deg," + color + " 0 " + (small ? 2 : 3) + "px," + cssRgba(color, 0.35) + " " + (small ? 2 : 3) + "px " + (small ? 4 : 6) + "px)";
       return bar;
     }
 
