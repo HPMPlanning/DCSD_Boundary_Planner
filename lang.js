@@ -10,16 +10,16 @@
 (function () {
   var ES = {
     // ---- config.js text (title, intro, notes, programs, next steps) ----
-    "Community Boundary Builder (Engagement Session 3 Option A Only)": "Herramienta comunitaria de zonas de asistencia escolar (solo opción A, sesión tres de participación comunitaria)",
-    "Community Boundary Builder": "Herramienta comunitaria de zonas de asistencia escolar",
+    "Community Boundary Builder (Engagement Session 3 Option A Only)": "Creador comunitario de zonas escolares (sesión 3, solo opción A)",
+    "Community Boundary Builder": "Creador comunitario de zonas escolares",
     "Pick a school, then click elementary zones on the map to assign them. Double-click a zone to unassign it.":
-      "Elija una escuela y luego haga clic en las zonas de asistencia de primaria del mapa para asignarlas. Haga doble clic en una zona para quitar la asignación.",
-    "Excludes High Achievers students": "No incluye a los estudiantes de alto rendimiento académico",
-    "Assumption of non-resident attendees": "La cantidad de estudiantes no residentes es una estimación",
+      "Elija una escuela y luego haga clic en las zonas de primaria del mapa para asignarlas. Haga doble clic en una zona para quitar la asignación.",
+    "Excludes High Achievers students": "Sin estudiantes de alto rendimiento académico",
+    "Assumption of non-resident attendees": "Estimación de estudiantes no residentes",
     "High Achievers Program": "Programa de alto rendimiento académico",
-    "Your plan goes directly to the district's boundary planning team.": "Su plan va directamente al equipo del proyecto de asignación escolar del distrito.",
+    "Your plan goes directly to the district's boundary planning team.": "Su plan va directamente al equipo de asignación escolar del distrito.",
     "The team reviews every submitted plan, along with your comments, as part of the community feedback that shapes boundary options.":
-      "El equipo revisa cada plan enviado, junto con sus comentarios, como parte de los comentarios y opiniones de la comunidad que ayudan a elaborar la recomendación del Superintendente a la Junta de Educación.",
+      "El equipo revisa cada plan enviado y sus comentarios como parte de las opiniones de la comunidad que dan forma a las opciones de zonas.",
 
     // ---- side panel ----
     "Unassigned zone": "Zona sin asignar",
@@ -41,10 +41,10 @@
     "Hosts {list}": "Sede de {list}",
     "School hosting {name}": "Escuela sede de {name}",
     "Non-resident students, fixed in every plan": "Estudiantes no residentes, fijos en todos los planes",
-    "High Achievers Program students (★ marks the host school)": "Estudiantes de alto rendimiento académico (★ indica la escuela sede del programa)",
+    "High Achievers Program students (★ marks the host school)": "Estudiantes de alto rendimiento académico (★ indica la escuela sede)",
     "{n} zones assigned to their nearest school.": "{n} zonas asignadas a su escuela más cercana.",
     "{zone} assigned to {school}.": "{zone} asignada a {school}.",
-    "{zone} unassigned.": "Se quitó la asignación de {zone}.",
+    "{zone} unassigned.": "{zone} sin asignar.",
     "Undid filling with the nearest schools.": "Se deshizo la asignación a las escuelas más cercanas.",
     "Undid the last change.": "Se deshizo el último cambio.",
     "Showing a plan opened from a link.": "Se muestra un plan abierto desde un enlace.",
@@ -53,7 +53,7 @@
     "Start over": "Empezar de nuevo",
     "Cancel": "Cancelar",
     "OK": "Aceptar",
-    " over": " sobre su capacidad",
+    " over": " excedido",
     "Projected": "Proyectado",
 
     // ---- map ----
@@ -68,19 +68,19 @@
     // ---- feeder patterns ----
     "Feeder patterns": "Patrones de continuidad escolar",
     "Back to map": "Volver al mapa",
-    "Percentages show how a split school's students divide.": "Los porcentajes muestran cómo se dividen los estudiantes de una escuela dividida.",
-    " {left} of {total} elementary zones are not assigned yet and are left out.": " {left} de {total} zonas de asistencia de primaria todavía no están asignadas y no se incluyen.",
-    "Assign elementary zones to schools to see feeder patterns.": "Asigne zonas de asistencia de primaria a escuelas para ver los patrones de continuidad escolar.",
+    "Percentages show how a split school's students divide.": "Los porcentajes muestran cómo se divide una escuela.",
+    " {left} of {total} elementary zones are not assigned yet and are left out.": " {left} de {total} zonas de primaria todavía no están asignadas y no se incluyen.",
+    "Assign elementary zones to schools to see feeder patterns.": "Asigne zonas de primaria a escuelas para ver los patrones de continuidad escolar.",
     "Assign zones to middle and high schools to see feeder patterns.": "Asigne zonas a escuelas intermedias y secundarias para ver los patrones de continuidad escolar.",
-    "No split": "Continuidad directa",
+    "No split": "Sin división",
     "{k}-way split": "Se divide en {k}",
     "No middle school": "Sin escuela intermedia",
     "No high school": "Sin escuela secundaria",
 
     // ---- submitting ----
     "Assign every zone before submitting ({list} school zones still open).": "Asigne todas las zonas antes de enviar (faltan zonas de {list}).",
-    "{n} middle": "{n} de escuela intermedia",
-    "{n} high": "{n} de escuela secundaria",
+    "{n} middle": "{n} de intermedia",
+    "{n} high": "{n} de secundaria",
     " and ": " y ",
     "Online submission is not set up yet.": "El envío en línea todavía no está disponible.",
     "Submitting…": "Enviando…",
@@ -91,8 +91,8 @@
     // ---- language switch ----
     "Español": "Español",
     "English": "English",
-    "Map of elementary zones": "Mapa de las zonas de asistencia de primaria",
-    "Feeder pattern tree": "Gráfico de patrones de continuidad escolar",
+    "Map of elementary zones": "Mapa de las zonas de primaria",
+    "Feeder pattern tree": "Gráfico de continuidad escolar",
     "Your plan as text": "Su plan como texto"
   };
 
@@ -124,24 +124,24 @@
     mailAgain: "Abrir el correo otra vez",
     picsNote: "El correo tiene un enlace que abre su plan en el mapa.",
     another: "Hacer otro plan",
-    welcomeTitle: "Le damos la bienvenida a la Herramienta comunitaria de zonas de asistencia escolar",
+    welcomeTitle: "Bienvenidos al Creador comunitario de zonas escolares",
     welcomeBody:
-      '<p>Esta herramienta usa las <b>zonas de asistencia de las escuelas primarias de la opción A</b> que se presentaron en la sesión tres de participación comunitaria. Cada área sombreada del mapa es una zona de asistencia de primaria de la opción A. Las zonas de primaria se quedan como están. Usted decide a qué escuela intermedia y a qué escuela secundaria asiste cada zona.</p>' +
+      '<p>Este planificador usa las <b>zonas de primaria de la opción A</b> de la sesión 3 de participación comunitaria. Cada área sombreada del mapa es una zona de primaria de la opción A. Las zonas de primaria no cambian. Usted decide a qué escuela intermedia y secundaria asiste cada zona.</p>' +
       '<h3>Cómo hacer un plan</h3>' +
       '<ol>' +
       '<li>Elija la pestaña <b>Escuela intermedia</b> o <b>Escuela secundaria</b>.</li>' +
       '<li>Elija una escuela en el panel lateral y luego haga clic en las zonas del mapa para asignárselas. Haga doble clic en una zona para quitar la asignación.</li>' +
       '<li>Fíjese en la barra de cada escuela. Una barra llena significa que la escuela está a su capacidad máxima; la barra y el porcentaje se ponen rojos cuando la excede.</li>' +
-      '<li>Use el menú del <b>Programa de alto rendimiento académico</b> para elegir la escuela sede del programa. Sus estudiantes cuentan para esa escuela.</li>' +
+      '<li>Use el menú del <b>Programa de alto rendimiento académico</b> para elegir la escuela sede. Sus estudiantes cuentan para esa escuela.</li>' +
       '<li>Cuando todas las zonas tengan escuela intermedia y secundaria, seleccione <b>Enviar plan</b>.</li>' +
       '</ol>' +
       '<h3>Sobre la "escuela más cercana"</h3>' +
-      '<p>El botón que asigna zonas a la escuela más cercana mide una línea recta desde el punto central de cada zona de asistencia de primaria hasta cada escuela. No usa la distancia en carro ni dónde viven los estudiantes dentro de la zona, así que tómelo como un punto de partida y ajústelo.</p>' +
+      '<p>El botón que asigna zonas a la escuela más cercana mide una línea recta desde el punto central de cada zona de primaria hasta cada escuela. No usa la distancia en carro ni dónde viven los estudiantes dentro de la zona, así que tómelo como un punto de partida y ajústelo.</p>' +
       '<h3>Sobre los números</h3>' +
-      '<p>En el mapa, cada zona muestra sus <b>estudiantes de intermedia</b> (grados 6 a 8) en la pestaña Escuela intermedia y sus <b>estudiantes de secundaria</b> (grados 9 a 12) en la pestaña Escuela secundaria: los estudiantes que viven en esa zona de asistencia de primaria. El total de cada escuela también incluye una cantidad fija de <b>estudiantes no residentes</b> que vienen de fuera de estas zonas. Siempre se quedan en su escuela en todos los planes, por eso las escuelas ya muestran algunos estudiantes antes de que usted asigne zonas. Aparecen como la parte gris de la barra de cada escuela. En Sequoyah HS, la cantidad de estudiantes no residentes es una estimación. Los estudiantes no residentes de Chamblee no incluyen a los estudiantes del programa Magnet de alto rendimiento académico, que cuentan para la escuela que usted elija en el menú del <b>Programa de alto rendimiento académico</b>.</p>',
+      '<p>En el mapa, cada zona muestra sus <b>estudiantes de intermedia</b> (grados 6 a 8) en la pestaña Escuela intermedia y sus <b>estudiantes de secundaria</b> (grados 9 a 12) en la pestaña Escuela secundaria: los estudiantes que viven en esa zona de primaria. El total de cada escuela también incluye una cantidad fija de <b>estudiantes no residentes</b> que vienen de fuera de estas zonas. Siempre se quedan en su escuela en todos los planes, por eso las escuelas ya muestran algunos estudiantes antes de que usted asigne zonas. Aparecen como la parte gris de la barra de cada escuela. En Sequoyah HS, la cantidad de estudiantes no residentes es una estimación. Los estudiantes no residentes de Chamblee no incluyen a los estudiantes del programa Magnet de alto rendimiento académico, que cuentan para la escuela que usted elija en el menú del <b>Programa de alto rendimiento académico</b>.</p>',
     getStarted: "Comenzar",
     cancel: "Cancelar",
-    ucTitle: "Herramienta comunitaria de zonas de asistencia escolar",
+    ucTitle: "Creador comunitario de zonas escolares",
     ucTag: "En construcción",
     ucText: "Este planificador todavía no está abierto. Vuelva pronto."
   };
