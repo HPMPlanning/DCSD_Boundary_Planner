@@ -202,7 +202,7 @@
     .fnotes p { margin: 0 0 3px; padding-left: 20px; text-indent: -20px; }
     .fnotes .kbar { display: inline-block; width: 14px; height: 5px; margin-right: 6px; vertical-align: middle; text-indent: 0; background: #8f8b82; }
     .fnotes .mk { display: inline-block; width: 14px; margin-right: 6px; text-indent: 0; text-align: center; }
-    .r1 .fn { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: -5px; }
+    .r1 .fn { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: -5px; align-self: flex-start; }
     .cbar.sm { height: 7px; } .cbar.sm .trk { height: 3px; }
     .hacard { position: relative; display: block; margin-top: 8px; border: 1px solid #c9c5bc; border-radius: 3px; background: #fff; }
     .hacard:hover, .hacard:focus-within { border-color: var(--ink); }
@@ -228,7 +228,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=66" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=67" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -332,10 +332,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=66"></script>
-  <script src="planner-core.js?v=66"></script>
+  <script src="config.js?v=67"></script>
+  <script src="planner-core.js?v=67"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=66" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=67" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -969,9 +969,8 @@
 
     // Capacity bar: a program's students show hatched after the school's own
     // Footnotes under the school list: the gray (non-resident) part of each bar, then any school notes from config.js
-    var MARKS = ["*", "\u2020", "\u2021", "\u00a7"];
     function noteMark(rows, r) {
-      return MARKS[rows.filter(function (x) { return x.school.note; }).indexOf(r) % MARKS.length];
+      return String(rows.filter(function (x) { return x.school.note; }).indexOf(r) + 1);
     }
     function footnotes(rows) {
       var box = document.createElement("div"); box.className = "fnotes";
