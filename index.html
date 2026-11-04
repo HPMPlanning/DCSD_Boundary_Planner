@@ -198,10 +198,11 @@
     .cbar .trk { position: absolute; left: 0; right: 0; top: 2px; height: 5px; background: #eceae4; overflow: hidden; display: flex; }
     .cbar .trk span { height: 100%; }
     .cbar .trk .nr { background: #8f8b82; }
-    .nrkey { display: flex; align-items: center; gap: 6px; margin: -2px 0 8px; font-size: 12px; color: var(--muted); }
-    .nrkey[hidden] { display: none; }
-    .snote { font-size: 12px; color: var(--muted); }
-    .nrkey .kbar { flex: none; width: 14px; height: 5px; background: #8f8b82; }
+    .fnotes { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+    .fnotes p { margin: 0 0 3px; padding-left: 20px; text-indent: -20px; }
+    .fnotes .kbar { display: inline-block; width: 14px; height: 5px; margin-right: 6px; vertical-align: middle; text-indent: 0; background: #8f8b82; }
+    .fnotes .mk { display: inline-block; width: 14px; margin-right: 6px; text-indent: 0; text-align: center; }
+    .r1 .fn { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: -5px; }
     .cbar.sm { height: 7px; } .cbar.sm .trk { height: 3px; }
     .hacard { position: relative; display: block; margin-top: 8px; border: 1px solid #c9c5bc; border-radius: 3px; background: #fff; }
     .hacard:hover, .hacard:focus-within { border-color: var(--ink); }
@@ -227,7 +228,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=65" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=66" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -258,7 +259,6 @@
           <button id="tabHS" role="tab">High school</button>
         </div>
         <div class="sechead"><h2>Choose a school</h2></div>
-        <div id="nrKey" class="nrkey" hidden></div>
         <div id="schools"></div>
         <div id="unassigned" class="callout"></div>
         <div id="last" class="sr" role="status"></div>
@@ -332,10 +332,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=65"></script>
-  <script src="planner-core.js?v=65"></script>
+  <script src="config.js?v=66"></script>
+  <script src="planner-core.js?v=66"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=65" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=66" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -363,9 +363,9 @@
     // ArcGIS Online sign-in page, which supports organization (SSO) logins
     var appId = new URLSearchParams(location.search).get("appid") || C.oauthAppId;
     if (appId) esriId.registerOAuthInfos([new OAuthInfo({ appId: appId, portalUrl: C.portalUrl || "https://www.arcgis.com", popup: false })]);
-    // Projected enrollment is shown only when the layer has projected fields (always in demo mode)
+    // Projected enrollment is shown only when the layer has projected fields
     var FRAMED = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
-    var HAS_PROJ = !C.zonesLayerUrl || !!(F.msProjected && F.hsProjected);
+    var HAS_PROJ = !!(F.msProjected && F.hsProjected);
     var state = { level: "MS", brush: null, zones: [], schools: [], assign: { MS: {}, HS: {} }, history: [], submitted: false };
     var $ = function (id) { return document.getElementById(id); };
     // A trailing "(...)" in the title shows as a smaller second line
@@ -911,6 +911,10 @@
         b.innerHTML = '<span class="r1"><span class="sw"></span><span class="nm"></span><span class="seats"></span><span class="pc"></span></span>';
         b.querySelector(".sw").style.background = r.school.color;
         b.querySelector(".nm").textContent = r.school.name;
+        if (r.school.note) {
+          var fn = document.createElement("span"); fn.className = "fn"; fn.textContent = noteMark(tc.rows, r);
+          b.querySelector(".nm").after(fn);
+        }
         if (hosted.length) {
           var st = document.createElement("span"); st.className = "star"; st.textContent = "\u2605";
           st.setAttribute("aria-label", "Hosts " + hosted.map(function (z) { return programLabel(z); }).join(", "));
@@ -919,14 +923,13 @@
         b.querySelector(".seats").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
         var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
         b.appendChild(capBar(r.school.color, r.students - extra - r.nonResident, extra, r.capacity, false, r.nonResident));
-        if (r.school.note) { var sn = document.createElement("span"); sn.className = "snote"; sn.textContent = r.school.note; b.appendChild(sn); }
         if (HAS_PROJ) b.appendChild(meter("Projected", rp));
         b.title = r.zones + (r.zones === 1 ? " zone" : " zones") + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
         list.appendChild(b);
       });
       box.appendChild(list);
-      renderNrKey(tc.rows);
+      box.appendChild(footnotes(tc.rows));
       progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
       var e = document.createElement("button");
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
@@ -965,12 +968,26 @@
     function programLabel(z) { var p = PROGRAMS.filter(function (x) { return x.level === z.program; })[0]; return (p && p.label) || z.name; }
 
     // Capacity bar: a program's students show hatched after the school's own
-    // Key for the gray part of each bar: non-resident students, counted before any zones are assigned
-    function renderNrKey(rows) {
-      var k = $("nrKey"), any = rows.some(function (r) { return r.nonResident; });
-      k.hidden = !any;
-      if (!any) return;
-      k.innerHTML = '<span class="kbar" aria-hidden="true"></span><span>Non-resident students, fixed at each school</span>';
+    // Footnotes under the school list: the gray (non-resident) part of each bar, then any school notes from config.js
+    var MARKS = ["*", "\u2020", "\u2021", "\u00a7"];
+    function noteMark(rows, r) {
+      return MARKS[rows.filter(function (x) { return x.school.note; }).indexOf(r) % MARKS.length];
+    }
+    function footnotes(rows) {
+      var box = document.createElement("div"); box.className = "fnotes";
+      var line = function (lead, text) {
+        var p = document.createElement("p"); p.appendChild(lead); p.appendChild(document.createTextNode(text)); box.appendChild(p);
+      };
+      if (rows.some(function (r) { return r.nonResident; })) {
+        var k = document.createElement("span"); k.className = "kbar"; k.setAttribute("aria-hidden", "true");
+        line(k, "Non-resident students. They stay at their school in every plan.");
+      }
+      rows.forEach(function (r) {
+        if (!r.school.note) return;
+        var m = document.createElement("span"); m.className = "mk"; m.textContent = noteMark(rows, r);
+        line(m, r.school.note);
+      });
+      return box;
     }
 
     function capBar(color, base, extra, cap, small, locked) {

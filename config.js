@@ -68,18 +68,18 @@ window.PLANNER_CONFIG = {
   // nonResident: students who attend from outside the zones; locked to the school and always counted
   // note: optional short line shown under the school in the side panel
   schools: [
-    { name: "Chamblee MS", color: "#1f77b4", level: "MS", capacity: 1080, nonResident: 32, note: "Non-resident count excludes High Achievers students. They count through the program below." },
+    { name: "Chamblee MS", color: "#1f77b4", level: "MS", capacity: 1080, nonResident: 32, note: "Non-resident count excludes High Achievers students, who count toward the school hosting the program." },
     { name: "Druid Hills MS", color: "#2ca02c", level: "MS", capacity: 1170, nonResident: 88 },
     { name: "Henderson MS", color: "#9467bd", level: "MS", capacity: 1590, nonResident: 77 },
     { name: "Peachtree MS", color: "#17becf", level: "MS", capacity: 1230, nonResident: 44 },
     { name: "Sequoyah MS", color: "#e377c2", level: "MS", capacity: 1170, nonResident: 36 },
     { name: "Tucker MS", color: "#8c564b", level: "MS", capacity: 1170, nonResident: 87 },
-    { name: "Chamblee HS", color: "#1f77b4", level: "HS", capacity: 1705, nonResident: 46, note: "Non-resident count excludes High Achievers students. They count through the program below." },
+    { name: "Chamblee HS", color: "#1f77b4", level: "HS", capacity: 1705, nonResident: 46, note: "Non-resident count excludes High Achievers students, who count toward the school hosting the program." },
     { name: "Cross Keys HS", color: "#ff7f0e", level: "HS", capacity: 1400, nonResident: 57 },
     { name: "Druid Hills HS", color: "#2ca02c", level: "HS", capacity: 1395, nonResident: 91 },
     { name: "Dunwoody HS", color: "#17becf", level: "HS", capacity: 1550, nonResident: 76 },
     { name: "Lakeside HS", color: "#9467bd", level: "HS", capacity: 1705, nonResident: 80 },
-    { name: "Sequoyah HS", color: "#e377c2", level: "HS", capacity: 1600, nonResident: 60, planned: true, note: "Not built yet, so its 60 non-resident students are an assumed number of transfer-ins" }, // not built; starts with no zones (planned only affects the demo map)
+    { name: "Sequoyah HS", color: "#e377c2", level: "HS", capacity: 1600, nonResident: 60, planned: true, note: "Not built yet. Its 60 non-resident students are assumed transfer students." }, // not built; starts with no zones (planned only affects the demo map)
     { name: "Tucker HS", color: "#8c564b", level: "HS", capacity: 1736, nonResident: 169 }
   ],
 
