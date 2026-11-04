@@ -177,6 +177,13 @@
     .dlg .box.welcome h2 { font-size: 26px; }
     .dlg .box.welcome ol { margin: 0 0 14px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
     .dlg .box.welcome li { margin-bottom: 4px; }
+    /* English / Español switch at the top of the welcome pop-up */
+    .langpick { display: flex; justify-content: flex-end; gap: 0; margin: -6px 0 10px; }
+    .langpick .btn { padding: 5px 12px; font-size: 13px; color: var(--muted); }
+    .langpick .btn + .btn { border-left: 0; }
+    .langpick .btn[aria-pressed="true"] { color: var(--ink); font-weight: 700; border-color: var(--ink); }
+    .langpick .btn[aria-pressed="true"] + .btn { border-left: 0; }
+    .langpick .btn + .btn[aria-pressed="true"] { border-left: 1px solid var(--ink); margin-left: -1px; }
     #mapHead h1 .sub { display: table; margin-top: 4px; padding: 2px 8px 1px; background: var(--orange); color: var(--ink); font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-size: 15px; letter-spacing: .05em; line-height: 1.3; border-radius: 2px; }
     #mailText { width: 100%; box-sizing: border-box; font: 12px/1.4 Consolas, monospace; padding: 8px; border: 1px solid var(--line); resize: vertical; }
     .pmark { color: var(--ink); }
@@ -280,24 +287,25 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=80" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=81" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
-        <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
+        <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns" data-i18n="menu"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
-          <button id="aboutBtn" class="btn">Instructions</button>
+          <button id="langBtn" class="btn" lang="es">Español</button>
+          <button id="aboutBtn" class="btn" data-i18n="about">Instructions</button>
           <button id="feedBtn" class="btn" aria-pressed="false">Feeder patterns</button>
-          <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend">Map legend</button>
+          <button id="legendBtn" class="btn" aria-expanded="false" aria-controls="legend" data-i18n="legend">Map legend</button>
         </div>
         <div id="legend" hidden></div>
       </header>
       <div id="mapWrap">
-        <div id="viewDiv" aria-label="Map of elementary zones"></div>
+        <div id="viewDiv" aria-label="Map of elementary zones" data-i18n-aria="Map of elementary zones"></div>
         <div id="chip" aria-hidden="true"></div>
         <div id="feedView" hidden>
-          <div class="fhead"><h2 class="serif">Feeder patterns</h2></div>
+          <div class="fhead"><h2 class="serif" data-i18n="feedTitle">Feeder patterns</h2></div>
           <p class="note" id="feedNote"></p>
-          <p class="note fkey" id="feedKey" hidden><span class="pmark">★</span> High Achievers program location</p>
-          <div id="feedTree" role="img" aria-label="Feeder pattern tree"></div>
+          <p class="note fkey" id="feedKey" hidden data-i18n="feedKey"><span class="pmark">★</span> High Achievers program location</p>
+          <div id="feedTree" role="img" aria-label="Feeder pattern tree" data-i18n-aria="Feeder pattern tree"></div>
           <div id="feedList" class="feeders sr"></div>
         </div>
       </div>
@@ -307,20 +315,20 @@
         <p class="intro" id="intro"></p>
         <div id="warnings"></div>
         <div class="tabs" role="tablist">
-          <button id="tabMS" class="active" role="tab">Middle school</button>
-          <button id="tabHS" role="tab">High school</button>
+          <button id="tabMS" class="active" role="tab" data-i18n="tabMS">Middle school</button>
+          <button id="tabHS" role="tab" data-i18n="tabHS">High school</button>
         </div>
-        <div class="sechead"><h2>Choose a school</h2></div>
+        <div class="sechead"><h2 data-i18n="choose">Choose a school</h2></div>
         <div id="schools"></div>
         <div id="unassigned" class="callout"></div>
         <div id="last" class="sr" role="status"></div>
         <div class="actions" id="tools">
-          <button id="undoBtn" class="btn">Undo</button>
-          <button id="resetBtn" class="btn">Start over</button>
+          <button id="undoBtn" class="btn" data-i18n="undo">Undo</button>
+          <button id="resetBtn" class="btn" data-i18n="reset">Start over</button>
         </div>
         <div id="dlNote" hidden></div>
       </div>
-      <div id="panelFoot"><button id="reviewBtn" class="btn primary">Submit plan</button></div>
+      <div id="panelFoot"><button id="reviewBtn" class="btn primary" data-i18n="submit">Submit plan</button></div>
     </aside>
   </div>
 
@@ -328,38 +336,39 @@
     <div class="box wide">
       <div id="reviewForm">
         <div class="scroll">
-          <h2 id="reviewTitle" class="serif">Submit your plan</h2>
-          <label for="nameIn">Name (optional)</label>
+          <h2 id="reviewTitle" class="serif" data-i18n="reviewTitle">Submit your plan</h2>
+          <label for="nameIn" data-i18n="nameLbl">Name (optional)</label>
           <input id="nameIn" maxlength="100" autocomplete="name">
-          <label for="emailIn">Email (optional)</label>
+          <label for="emailIn" data-i18n="emailLbl">Email (optional)</label>
           <input id="emailIn" type="email" maxlength="150" autocomplete="email">
-          <label for="commentIn">Comments for the planning team (optional)</label>
+          <label for="commentIn" data-i18n="commentLbl">Comments for the planning team (optional)</label>
           <textarea id="commentIn" maxlength="2000"></textarea>
         </div>
         <div class="foot">
           <div id="msg" role="status"></div>
-          <div class="actions"><button id="reviewBack" class="btn">Back to map</button><button id="submitBtn" class="btn primary">Submit plan</button></div>
+          <div class="actions"><button id="reviewBack" class="btn" data-i18n="back">Back to map</button><button id="submitBtn" class="btn primary" data-i18n="submit">Submit plan</button></div>
         </div>
       </div>
       <div id="thanks" class="scroll" hidden tabindex="-1">
-        <h2 class="serif" id="thanksTitle">Thank you, your plan was submitted</h2>
-        <p>Your plan ID is <span class="pid" id="thanksId"></span>.</p>
+        <h2 class="serif" id="thanksTitle"><span data-i18n="thanksTitle">Thank you, your plan was submitted</span></h2>
+        <p><span data-i18n="planIdIs">Your plan ID is</span> <span class="pid" id="thanksId"></span>.</p>
         <div id="thanksMail" hidden>
-          <p>Your email app should open with your plan filled in, addressed to <b id="mailTo"></b>. Press Send in your email to submit it.</p>
-          <p>If it didn't open, or the plan looks cut off, your plan is also copied: paste it into an email to <b id="mailTo2"></b>.</p>
-          <textarea id="mailText" readonly rows="8" aria-label="Your plan as text"></textarea>
-          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn">Copy plan</button><button id="mailAgain" class="btn">Open email again</button></div>
-          <p id="picsNote" style="font-size:13px;color:var(--muted)">The email has a link that opens your plan on the map.</p>
+          <p><span data-i18n="mailOpen">Your email app should open with your plan filled in, addressed to</span> <b id="mailTo"></b><span data-i18n="mailOpen2">. Press Send in your email to submit it.</span></p>
+          <p><span data-i18n="mailCut">If it didn't open, or the plan looks cut off, your plan is also copied: paste it into an email to</span> <b id="mailTo2"></b>.</p>
+          <textarea id="mailText" readonly rows="8" aria-label="Your plan as text" data-i18n-aria="Your plan as text"></textarea>
+          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn" data-i18n="copyPlan">Copy plan</button><button id="mailAgain" class="btn" data-i18n="mailAgain">Open email again</button></div>
+          <p id="picsNote" style="font-size:13px;color:var(--muted)" data-i18n="picsNote">The email has a link that opens your plan on the map.</p>
         </div>
         <ul id="thanksNext"></ul>
-        <div class="actions" style="margin-bottom:16px"><button id="thanksNew" class="btn primary">Make another plan</button></div>
+        <div class="actions" style="margin-bottom:16px"><button id="thanksNew" class="btn primary" data-i18n="another">Make another plan</button></div>
       </div>
     </div>
   </div>
   <div id="welcome" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="box welcome" id="welcomeBox" tabindex="-1">
-      <h2 id="welcomeTitle" class="serif">Welcome to the Community Boundary Builder</h2>
-      <p>This planner uses the <b>Option A elementary school boundaries</b> from Engagement Session 3. Each shaded area on the map is one Option A elementary zone. The elementary boundaries stay as they are. You decide which middle school and high school each zone attends.</p>
+      <div class="langpick" role="group" aria-label="Language / Idioma"><button type="button" class="btn" data-lang="en" lang="en">English</button><button type="button" class="btn" data-lang="es" lang="es">Español</button></div>
+      <h2 id="welcomeTitle" class="serif" data-i18n="welcomeTitle">Welcome to the Community Boundary Builder</h2>
+      <div data-i18n="welcomeBody"><p>This planner uses the <b>Option A elementary school boundaries</b> from Engagement Session 3. Each shaded area on the map is one Option A elementary zone. The elementary boundaries stay as they are. You decide which middle school and high school each zone attends.</p>
       <h3>How to build a plan</h3>
       <ol>
         <li>Pick the <b>Middle school</b> or <b>High school</b> tab.</li>
@@ -372,28 +381,31 @@
       <p>The button that fills zones with the nearest school measures a straight line from the center point of each elementary zone to each school. It doesn't use driving distance or where students live within the zone, so treat it as a starting point and adjust from there.</p>
       <h3>About the numbers</h3>
       <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone. Each school's total also includes a fixed number of <b>non-resident students</b> who attend from outside these zones. They're locked to their school in every plan, which is why schools already show some students before you assign any zones. They show as the gray part of each school's bar. At Sequoyah HS, the number of non-resident attendees is an assumption. Chamblee's non-resident students don't include High Achievers magnet students, who count toward whichever school you pick with the <b>High Achievers Program</b> dropdown.</p>
-      <div class="actions"><button id="welcomeOk" class="btn primary">Get started</button></div>
+      </div>
+      <div class="actions"><button id="welcomeOk" class="btn primary" data-i18n="getStarted">Get started</button></div>
     </div>
   </div>
   <div id="dlg" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dlgText">
     <div class="box">
       <p id="dlgText"></p>
-      <div class="actions"><button id="dlgCancel" class="btn">Cancel</button><button id="dlgOk" class="btn primary">OK</button></div>
+      <div class="actions"><button id="dlgCancel" class="btn" data-i18n="cancel">Cancel</button><button id="dlgOk" class="btn primary">OK</button></div>
     </div>
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=80"></script>
-  <script src="planner-core.js?v=80"></script>
+  <script src="config.js?v=81"></script>
+  <script src="planner-core.js?v=81"></script>
+  <script src="lang.js?v=81"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=80" alt="DeKalb County School District">
-    <h1>Community Boundary Builder</h1>
-    <p class="uc-tag">Under construction</p>
-    <p>This planner isn't open yet. Please check back soon.</p>
+    <img src="dcsd-logo.svg?v=81" alt="DeKalb County School District">
+    <h1 data-i18n="ucTitle">Community Boundary Builder</h1>
+    <p class="uc-tag" data-i18n="ucTag">Under construction</p>
+    <p data-i18n="ucText">This planner isn't open yet. Please check back soon.</p>
   </div>
   <script>
     // Under Construction notice for everyone but the private test link (?zones=)
     window.PLANNER_OFF = !!(window.PLANNER_CONFIG.underConstruction && !new URLSearchParams(location.search).get("zones"));
+    PLANNER_I18N.apply();
     if (window.PLANNER_OFF) { document.getElementById("app").style.display = "none"; document.getElementById("uc").hidden = false; }
   </script>
   <script src="https://js.arcgis.com/4.31/"></script>
@@ -420,11 +432,14 @@
     var state = { level: "MS", brush: null, zones: [], schools: [], assign: { MS: {}, HS: {} }, history: [], submitted: false };
     var $ = function (id) { return document.getElementById(id); };
     // A trailing "(...)" in the title shows as a smaller second line
-    var tm2 = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(C.title);
-    $("title").textContent = tm2 ? tm2[1] : C.title;
-    if (tm2) { var sub = document.createElement("span"); sub.className = "sub"; sub.textContent = tm2[2]; $("title").appendChild(sub); }
-    $("intro").textContent = C.intro;
-    document.title = C.title;
+    function renderTitle() {
+      var title = T(C.title), tm2 = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(title);
+      $("title").textContent = tm2 ? tm2[1] : title;
+      if (tm2) { var sub = document.createElement("span"); sub.className = "sub"; sub.textContent = tm2[2]; $("title").appendChild(sub); }
+      $("intro").textContent = T(C.intro);
+      document.title = title;
+    }
+    renderTitle();
 
     // Optional public web map: its basemap and layers (school points, labels, roads)
     // draw with the planner's zones on top of the basemap
@@ -440,7 +455,7 @@
         map = webMap; view.map = webMap;
       }).catch(function (e) {
         // Fall back to the plain basemap so the planner still works
-        $("warnings").textContent = "The background map could not be loaded, so a plain basemap is shown. Check that webMapId is right and the map is shared publicly.";
+        $("warnings").textContent = T("The background map could not be loaded, so a plain basemap is shown. Check that webMapId is right and the map is shared publicly.");
         console.error(e);
       });
     }
@@ -467,8 +482,8 @@
       }
       resetAssignments();
       if (PLAN_PARAM) {
-        if (applyPlanCode(PLAN_PARAM)) $("last").textContent = "Showing a plan opened from a link.";
-        else $("last").textContent = "That plan link didn't match these zones, so the map starts fresh.";
+        if (applyPlanCode(PLAN_PARAM)) $("last").textContent = T("Showing a plan opened from a link.");
+        else $("last").textContent = T("That plan link didn't match these zones, so the map starts fresh.");
       }
       buildLayer();
       setLevel("MS");
@@ -477,8 +492,8 @@
       showMap();
       // A private layer the visitor can't sign in to (cancelled, or no access)
       var denied = e && (/identity-manager/.test(e.name || "") || /^(403|498|499)$/.test(String((e.details && e.details.httpStatus) || "")));
-      $("warnings").textContent = denied ? "This planner isn't open to the public yet. Sign in with an ArcGIS account that has access to see it."
-        : "The zones layer could not be loaded. " + (e && e.message ? e.message : "");
+      $("warnings").textContent = denied ? T("This planner isn't open to the public yet. Sign in with an ArcGIS account that has access to see it.")
+        : T("The zones layer could not be loaded. ") + (e && e.message ? e.message : "");
       console.error(e);
     });
 
@@ -794,7 +809,7 @@
       if (!batch.length) return;
       state.history.push({ level: state.level, batch: batch, at: Date.now() });
       refreshLayer();
-      $("last").textContent = batch.length + " zones assigned to their nearest school.";
+      $("last").textContent = T("{n} zones assigned to their nearest school.", { n: batch.length });
       renderPanel();
     }
 
@@ -836,7 +851,7 @@
 
     // Zone labels: the name, then the students for the tab, e.g. "245 Middle Students"
     function zoneLabels(level) {
-      var unit = level === "MS" ? "Middle Students" : "High Students";
+      var unit = T(level === "MS" ? "Middle Students" : "High Students").replace(/'/g, "\\'");
       var base = {
         labelExpressionInfo: { expression: HAS_PROJ ? "$feature.name + TextFormatting.NewLine + 'Now ' + $feature.now_n + ' / Proj ' + $feature.proj_n" : "$feature.name + TextFormatting.NewLine + $feature.now_n + ' " + unit + "'" },
         symbol: { type: "text", color: "#1d2733", haloColor: "#ffffff", haloSize: 1.5, font: { size: 9, weight: "bold" } }
@@ -849,7 +864,7 @@
     // doesn't change how the other zone labels hide when crowded
     var pinLayer = null;
     function pinLabels(level) {
-      var unit = level === "MS" ? "Middle Students" : "High Students", f = level === "MS" ? "ms" : "hs";
+      var unit = T(level === "MS" ? "Middle Students" : "High Students").replace(/'/g, "\\'"), f = level === "MS" ? "ms" : "hs";
       return [{
         labelExpressionInfo: { expression: "$feature.name + TextFormatting.NewLine + $feature." + f + " + ' " + unit + "'" },
         labelPlacement: "center-center", deconflictionStrategy: "none",
@@ -874,7 +889,7 @@
       return {
         type: "unique-value", field: "assigned",
         defaultSymbol: { type: "simple-fill", style: "backward-diagonal", color: [120, 120, 120, 0.6], outline: { color: [90, 90, 90, 1], width: 1 } },
-        defaultLabel: "Unassigned",
+        defaultLabel: T("Unassigned"),
         uniqueValueInfos: P.schoolsFor(state.schools, level).map(function (s) {
           return { value: s.id, label: s.name, symbol: { type: "simple-fill", color: hexToRgba(s.color, 0.55), outline: { color: [0, 0, 0, 0], width: 0 } } };
         })
@@ -917,7 +932,7 @@
       if (target) a[zoneId] = target; else delete a[zoneId];
       refreshLayer(zoneId);
       var z = state.zones.filter(function (x) { return x.id === zoneId; })[0];
-      $("last").textContent = (z ? z.name : zoneId) + (target ? " assigned to " + nameOf(target) : " unassigned") + ".";
+      $("last").textContent = target ? T("{zone} assigned to {school}.", { zone: z ? z.name : zoneId, school: nameOf(target) }) : T("{zone} unassigned.", { zone: z ? z.name : zoneId });
       renderPanel();
     }
 
@@ -937,12 +952,12 @@
       if (h.batch) {
         h.batch.forEach(function (b) { if (b.prev) state.assign[h.level][b.zoneId] = b.prev; else delete state.assign[h.level][b.zoneId]; });
         if (h.level !== state.level) setLevel(h.level); else { refreshLayer(); renderPanel(); }
-        $("last").textContent = "Undid filling with the nearest schools.";
+        $("last").textContent = T("Undid filling with the nearest schools.");
         return;
       }
       if (h.prev) state.assign[h.level][h.zoneId] = h.prev; else delete state.assign[h.level][h.zoneId];
       if (h.level !== state.level) setLevel(h.level); else { refreshLayer(h.zoneId); renderPanel(); }
-      $("last").textContent = "Undid the last change.";
+      $("last").textContent = T("Undid the last change.");
     }
 
     function renderPanel() {
@@ -968,7 +983,7 @@
         }
         if (hosted.length) {
           var st = document.createElement("span"); st.className = "star"; st.textContent = "\u2605";
-          st.setAttribute("aria-label", "Hosts " + hosted.map(function (z) { return programLabel(z); }).join(", "));
+          st.setAttribute("aria-label", T("Hosts {list}", { list: hosted.map(function (z) { return T(programLabel(z)); }).join(", ") }));
           b.querySelector(".nm").after(st);
         }
         b.querySelector(".seats").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
@@ -984,7 +999,7 @@
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
       e.setAttribute("aria-pressed", String(state.brush === ""));
       e.innerHTML = '<span class="sw none"></span>';
-      e.appendChild(document.createTextNode("Unassigned zone"));
+      e.appendChild(document.createTextNode(T("Unassigned zone")));
       e.onclick = function () { state.brush = ""; renderPanel(); };
       list.appendChild(e);
       progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
@@ -993,12 +1008,12 @@
       var u = tc.unassigned, up = tp.unassigned, un = $("unassigned"), lvl = state.level === "MS" ? "middle" : "high";
       un.innerHTML = "<strong></strong><span></span>";
       un.className = "callout" + (u.zones ? "" : " done");
-      un.firstChild.textContent = u.zones ? u.zones.toLocaleString() + (u.zones === 1 ? " zone still needs a " : " zones still need a ") + lvl + " school" : "Every zone has a " + lvl + " school";
-      un.lastChild.textContent = u.zones ? u.students.toLocaleString() + " students" + (HAS_PROJ ? " (" + up.students.toLocaleString() + " projected)" : "") + " are not yet assigned." : "";
+      un.firstChild.textContent = u.zones ? T("{n} " + (u.zones === 1 ? "zone still needs a " : "zones still need a ") + lvl + " school", { n: u.zones.toLocaleString() }) : T("Every zone has a " + lvl + " school");
+      un.lastChild.textContent = u.zones ? (HAS_PROJ ? T("{n} students ({p} projected) are not yet assigned.", { n: u.students.toLocaleString(), p: up.students.toLocaleString() }) : T("{n} students are not yet assigned.", { n: u.students.toLocaleString() })) : "";
       if (u.zones && P.schoolsFor(state.schools, state.level).some(function (s) { return s.point; })) {
         var fb = document.createElement("button");
         fb.className = "btn fill"; fb.type = "button";
-        fb.textContent = "Fill " + (u.zones === 1 ? "it" : "them") + " with the nearest " + lvl + " school";
+        fb.textContent = T("Fill " + (u.zones === 1 ? "it" : "them") + " with the nearest " + lvl + " school");
         fb.onclick = fillNearest;
         un.appendChild(fb);
       }
@@ -1006,7 +1021,7 @@
       var chip = $("chip");
       chip.innerHTML = "";
       if (state.brush != null) {
-        chip.appendChild(document.createTextNode(state.brush ? "Assigning to " : "Unassigning zones"));
+        chip.appendChild(document.createTextNode(T(state.brush ? "Assigning to " : "Unassigning zones")));
         if (state.brush) { var bn = document.createElement("strong"); bn.textContent = nameOf(state.brush); chip.appendChild(bn); }
       }
       $("undoBtn").disabled = !state.history.length;
@@ -1030,16 +1045,16 @@
       };
       if (rows.some(function (r) { return r.nonResident; })) {
         var k = document.createElement("span"); k.className = "kbar"; k.setAttribute("aria-hidden", "true");
-        line(k, "Non-resident students, fixed in every plan");
+        line(k, T("Non-resident students, fixed in every plan"));
       }
       if (programsFor(state.level).length) {
         var h = document.createElement("span"); h.className = "kbar ha"; h.setAttribute("aria-hidden", "true");
-        line(h, "High Achievers Program students (\u2605 marks the host school)");
+        line(h, T("High Achievers Program students (\u2605 marks the host school)"));
       }
       rows.forEach(function (r) {
         if (!r.school.note) return;
         var m = document.createElement("span"); m.className = "mk"; m.textContent = noteMark(rows, r);
-        line(m, r.school.note);
+        line(m, T(r.school.note));
       });
       return box;
     }
@@ -1066,15 +1081,15 @@
       var c = document.createElement("label"); c.className = "hacard";
       c.innerHTML = '<span class="hahead"><span class="nm"></span><span class="hhost"></span>' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3d3a35" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><select></select>';
-      c.querySelector(".nm").textContent = programLabel(z);
+      c.querySelector(".nm").textContent = T(programLabel(z));
       var hh = c.querySelector(".hhost");
       if (host) {
         var hn = document.createElement("b"); hn.textContent = nameOf(host);
         hh.appendChild(hn);
-      } else { hh.className += " none"; hh.textContent = "Unassigned"; }
+      } else { hh.className += " none"; hh.textContent = T("Unassigned"); }
       var sel = c.querySelector("select");
-      sel.setAttribute("aria-label", "School hosting " + programLabel(z));
-      [{ id: "", name: "Unassigned" }].concat(rows.map(function (r) { return r.school; })).forEach(function (sc) {
+      sel.setAttribute("aria-label", T("School hosting {name}", { name: T(programLabel(z)) }));
+      [{ id: "", name: T("Unassigned") }].concat(rows.map(function (r) { return r.school; })).forEach(function (sc) {
         var o = document.createElement("option"); o.value = sc.id; o.textContent = sc.name; sel.appendChild(o);
       });
       sel.value = host;
@@ -1088,7 +1103,7 @@
       var rows = P.computeFeeders(mapZones(), state.assign.MS, state.assign.HS, state.schools);
       if (!rows.length) {
         var p = document.createElement("p"); p.className = "note";
-        p.textContent = "Assign zones to middle and high schools to see feeder patterns.";
+        p.textContent = T("Assign zones to middle and high schools to see feeder patterns.");
         box.appendChild(p); return;
       }
       rows.forEach(function (f) {
@@ -1118,8 +1133,8 @@
       $("feedKey").hidden = !state.zones.some(function (z) { return z.program; });
       var zs = mz.filter(function (z) { return keys.some(function (k) { return state.assign[k][z.id]; }); });
       var left = mz.length - zs.length;
-      $("feedNote").textContent = "Percentages show how a split school's students divide." + (left ? " " + left + " of " + mz.length + " " + FEED_UNITS + " are not assigned yet and are left out." : "");
-      if (!zs.length) { box.textContent = "Assign " + FEED_UNITS + " to schools to see feeder patterns."; return; }
+      $("feedNote").textContent = T("Percentages show how a split school's students divide.") + (left ? T(" {left} of {total} " + FEED_UNITS + " are not assigned yet and are left out.", { left: left, total: mz.length }) : "");
+      if (!zs.length) { box.textContent = T("Assign " + FEED_UNITS + " to schools to see feeder patterns."); return; }
       // Order top-level schools so ones sharing a lower school sit side by side
       var low = keys[0], topK = keys[top], links = {}, tops = {};
       zs.forEach(function (z) { var t = state.assign[topK][z.id]; if (t) tops[t] = 1; });
@@ -1192,10 +1207,10 @@
             var ups = {};
             zs.forEach(function (z) { if (state.assign[keys[li]][z.id] === id && state.assign[keys[li + 1]][z.id]) ups[state.assign[keys[li + 1]][z.id]] = 1; });
             var k = Object.keys(ups).length;
-            sub = k <= 1 ? "No split" : k + "-way split";
+            sub = k <= 1 ? T("No split") : T("{k}-way split", { k: k });
           }
           cell("fbox lv" + (top - li) + (id ? "" : " none"), r[0], r[1], row,
-            "<b>" + esc(id ? nm(id) : "No " + FEED_LEVEL_NAME(keys[li])) +
+            "<b>" + esc(id ? nm(id) : T("No " + FEED_LEVEL_NAME(keys[li]))) +
             (id ? programsFor(keys[li]).filter(function (z) { return state.assign[keys[li]][z.id] === id; })
               .map(function (z) { return '<i class="fstar" title="' + esc(z.name) + '">\u2605</i>'; }).join("") : "") +
             "</b>" + (sub ? "<span>(" + sub + ")</span>" : ""));
@@ -1230,7 +1245,7 @@
     function toggleFeeders(show) {
       $("feedView").hidden = !show;
       $("feedBtn").setAttribute("aria-pressed", String(show));
-      $("feedBtn").textContent = show ? "Back to map" : "Feeder patterns";
+      $("feedBtn").textContent = T(show ? "Back to map" : "Feeder patterns");
       $("legendBtn").style.display = show ? "none" : "";
       $("legend").hidden = true;
       if (show) drawFeederDiagram();
@@ -1239,7 +1254,7 @@
     function renderLegend() {
       var lg = $("legend");
       lg.innerHTML = "";
-      P.schoolsFor(state.schools, state.level).concat([{ name: "Unassigned" }]).forEach(function (s) {
+      P.schoolsFor(state.schools, state.level).concat([{ name: T("Unassigned") }]).forEach(function (s) {
         var row = document.createElement("div"), sw = document.createElement("span"), t = document.createElement("span");
         sw.className = "swatch" + (s.color ? "" : " none");
         if (s.color) sw.style.background = s.color;
@@ -1253,11 +1268,11 @@
       var row = document.createElement("div");
       row.className = "meter st-" + r.status;
       row.innerHTML = '<div class="mtop"><span class="mlabel"></span><span class="nums"></span></div><div class="bar"><span></span><i></i></div>';
-      row.querySelector(".mlabel").textContent = label;
+      row.querySelector(".mlabel").textContent = T(label);
       var nums = row.querySelector(".nums");
       nums.appendChild(document.createTextNode(r.students.toLocaleString()));
       var pct = document.createElement("span"); pct.className = "pct";
-      pct.textContent = r.pct + "%" + (r.status === "over" ? " over" : "");
+      pct.textContent = r.pct + "%" + (r.status === "over" ? T(" over") : "");
       nums.appendChild(pct);
       var fill = row.querySelector(".bar span");
       fill.style.width = Math.min(r.pct, 125) / 1.25 + "%";
@@ -1336,7 +1351,7 @@
     function ask(text, okLabel) {
       return new Promise(function (resolve) {
         $("dlgText").textContent = text;
-        $("dlgOk").textContent = okLabel || "OK";
+        $("dlgOk").textContent = okLabel || T("OK");
         $("dlg").hidden = false; $("dlgOk").focus();
         function done(v) { $("dlg").hidden = true; $("dlgOk").onclick = $("dlgCancel").onclick = null; resolve(v); }
         $("dlgOk").onclick = function () { done(true); };
@@ -1356,7 +1371,7 @@
       var allNow = tm.rows.concat(th.rows), allProj = tmp.rows.concat(thp.rows);
       var over = allNow.filter(function (r, i) { return r.status === "over" || (HAS_PROJ && allProj[i].status === "over"); });
       if (C.submitEmail) { emailPlan(tm, th, over.length); return; }
-      if (!C.submissionsTableUrl) { showMsg("Online submission is not set up yet.", true); return; }
+      if (!C.submissionsTableUrl) { showMsg(T("Online submission is not set up yet."), true); return; }
       // Over-capacity plans are allowed; the count is saved with the plan
       var planId = P.makePlanId();
       var attrs = {
@@ -1374,7 +1389,7 @@
       };
       // Projected totals only when the layer has projections, so a table without those fields still works
       if (HAS_PROJ) { attrs.ms_totals_projected = P.totalsText(tmp).slice(0, 2000); attrs.hs_totals_projected = P.totalsText(thp).slice(0, 2000); }
-      var btn = $("submitBtn"); btn.disabled = true; showMsg("Submitting…", false);
+      var btn = $("submitBtn"); btn.disabled = true; showMsg(T("Submitting…"), false);
       // The URL can be the service or the table itself; only fields the table has are sent
       var base = C.submissionsTableUrl.replace(/\/$/, "");
       var findTable = /\/FeatureServer$/i.test(base)
@@ -1403,7 +1418,7 @@
         showThanks(planId);
       }).catch(function (e) {
         btn.disabled = false;
-        showMsg("Submission failed: " + (e && e.message ? e.message : e) + " Please try again.", true);
+        showMsg(T("Submission failed: {err} Please try again.", { err: e && e.message ? e.message : e }), true);
       });
     }
 
@@ -1448,7 +1463,7 @@
       state.submitted = true;
       showMsg("", false);
       showThanks(planId);
-      $("thanksTitle").textContent = "Almost done: send the email";
+      $("thanksTitle").textContent = T("Almost done: send the email");
       $("mailTo").textContent = C.submitEmail;
       $("mailTo2").textContent = C.submitEmail;
       $("mailText").value = body;
@@ -1456,7 +1471,7 @@
       $("mailCopy").onclick = function () {
         var t = $("mailText"); t.select();
         (navigator.clipboard ? navigator.clipboard.writeText(body) : Promise.reject()).catch(function () { document.execCommand("copy"); })
-          .then(function () { $("mailCopy").textContent = "Copied"; });
+          .then(function () { $("mailCopy").textContent = T("Copied"); });
       };
       $("thanksMail").hidden = false;
     }
@@ -1491,7 +1506,7 @@
     function showThanks(planId) {
       $("reviewForm").hidden = true;
       $("thanksId").textContent = planId;
-      fillList($("thanksNext"), C.nextSteps || []);
+      fillList($("thanksNext"), (C.nextSteps || []).map(function (t) { return T(t); }));
       $("thanks").hidden = false;
       $("thanks").focus();
     }
@@ -1502,10 +1517,10 @@
       var open = [];
       ["MS", "HS"].forEach(function (level) {
         var u = totalsFor(level, "C").unassigned.zones;
-        if (u) open.push(u + " " + (level === "MS" ? "middle" : "high"));
+        if (u) open.push(T("{n} " + (level === "MS" ? "middle" : "high"), { n: u }));
       });
       $("submitBtn").disabled = !!open.length || state.submitted;
-      showMsg(open.length ? "Assign every zone before submitting (" + open.join(" and ") + " school zones still open)." : "", true);
+      showMsg(open.length ? T("Assign every zone before submitting ({list} school zones still open).", { list: open.join(T(" and ")) }) : "", true);
       $("reviewForm").hidden = false; $("thanks").hidden = true;
       $("review").hidden = false;
       $("nameIn").focus();
@@ -1515,6 +1530,26 @@
       ul.innerHTML = "";
       items.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
     }
+
+    // English / Spanish: the switch in the welcome pop-up and the header button
+    function setLanguage(lang) {
+      PLANNER_I18N.set(lang);
+      var es = PLANNER_I18N.lang === "es";
+      $("langBtn").textContent = es ? "English" : "Español";
+      $("langBtn").setAttribute("lang", es ? "en" : "es");
+      document.querySelectorAll(".langpick .btn").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === PLANNER_I18N.lang)); });
+      renderTitle();
+      $("feedBtn").textContent = T($("feedView").hidden ? "Feeder patterns" : "Back to map");
+      if (layer) { layer.renderer = rendererFor(state.level); layer.labelingInfo = zoneLabels(state.level); }
+      if (pinLayer) pinLayer.labelingInfo = pinLabels(state.level);
+      if (state.schools.length) { renderLegend(); renderPanel(); }
+      if (!$("feedView").hidden) drawFeederDiagram();
+    }
+    document.querySelectorAll(".langpick .btn").forEach(function (b) {
+      b.onclick = function () { setLanguage(b.getAttribute("data-lang")); };
+    });
+    $("langBtn").onclick = function () { closeMenu(); setLanguage(PLANNER_I18N.lang === "es" ? "en" : "es"); };
+    setLanguage(PLANNER_I18N.lang);
 
     // Welcome pop-up on every visit; "Instructions" opens it again
     function showWelcome(show) {
@@ -1538,7 +1573,7 @@
     $("tabHS").onclick = function () { setLevel("HS"); };
     $("undoBtn").onclick = undo;
     $("resetBtn").onclick = function () {
-      ask("Start over? This clears your changes.", "Start over").then(function (ok) {
+      ask(T("Start over? This clears your changes."), T("Start over")).then(function (ok) {
         if (!ok) return;
         resetAssignments(); setLevel(state.level); $("last").textContent = ""; $("dlNote").hidden = true;
       });
