@@ -1314,13 +1314,19 @@
       var box = planId ? $("thanks") : null, note = $("dlNote");
       note.hidden = false;
       note.innerHTML = openedTab
-        ? 'Your plan opened in a new tab to download the CSV. If nothing opened, <a target="_blank" rel="noopener">download it in a new tab</a> or <button class="link" type="button">show the plan as text</button> to copy.'
-        : 'If no file downloaded, your browser blocked it inside this page. <a target="_blank" rel="noopener">Download it in a new tab</a> (your plan comes with you), or <button class="link" type="button">show the plan as text</button> to copy.';
+        ? 'Your plan opened in a new tab to download the CSV. If nothing opened, <a target="_blank" rel="noopener">download it in a new tab</a> or <button class="link" type="button">copy the plan</button> to paste into Excel.'
+        : 'If no file downloaded, your browser blocked it inside this page. <a target="_blank" rel="noopener">Download it in a new tab</a> (your plan comes with you), or <button class="link" type="button">copy the plan</button> to paste into Excel.';
       note.querySelector("a").href = ownTabDownloadLink(planId);
-      note.querySelector("button").onclick = function () {
+      var copyBtn = note.querySelector("button");
+      copyBtn.onclick = function () {
+        // Show the text too, so it can be copied by hand if the browser blocks copying
         var t = $("csvText") || document.createElement("textarea");
         t.id = "csvText"; t.readOnly = true; t.value = csv;
         note.appendChild(t); t.focus(); t.select();
+        function done(ok) { copyBtn.textContent = ok ? "copied!" : "copy the plan (select the text below and copy)"; }
+        var legacy = function () { try { done(document.execCommand("copy")); } catch (e) { done(false); } };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(csv).then(function () { done(true); }, legacy);
+        else legacy();
       };
       if (box) box.appendChild(note);
     }
