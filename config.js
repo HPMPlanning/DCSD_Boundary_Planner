@@ -68,13 +68,13 @@ window.PLANNER_CONFIG = {
   // nonResident: students who attend from outside the zones; locked to the school and always counted
   // note: optional short line shown under the school in the side panel
   schools: [
-    { name: "Chamblee MS", color: "#1f77b4", level: "MS", capacity: 1080, nonResident: 32 },
+    { name: "Chamblee MS", color: "#1f77b4", level: "MS", capacity: 1080, nonResident: 32, note: "Non-resident count excludes High Achievers students. They count through the program below." },
     { name: "Druid Hills MS", color: "#2ca02c", level: "MS", capacity: 1170, nonResident: 88 },
     { name: "Henderson MS", color: "#9467bd", level: "MS", capacity: 1590, nonResident: 77 },
     { name: "Peachtree MS", color: "#17becf", level: "MS", capacity: 1230, nonResident: 44 },
     { name: "Sequoyah MS", color: "#e377c2", level: "MS", capacity: 1170, nonResident: 36 },
     { name: "Tucker MS", color: "#8c564b", level: "MS", capacity: 1170, nonResident: 87 },
-    { name: "Chamblee HS", color: "#1f77b4", level: "HS", capacity: 1705, nonResident: 46 },
+    { name: "Chamblee HS", color: "#1f77b4", level: "HS", capacity: 1705, nonResident: 46, note: "Non-resident count excludes High Achievers students. They count through the program below." },
     { name: "Cross Keys HS", color: "#ff7f0e", level: "HS", capacity: 1400, nonResident: 57 },
     { name: "Druid Hills HS", color: "#2ca02c", level: "HS", capacity: 1395, nonResident: 91 },
     { name: "Dunwoody HS", color: "#17becf", level: "HS", capacity: 1550, nonResident: 76 },
