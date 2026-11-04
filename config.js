@@ -79,7 +79,7 @@ window.PLANNER_CONFIG = {
     { name: "Druid Hills HS", color: "#2ca02c", level: "HS", capacity: 1395, nonResident: 91 },
     { name: "Dunwoody HS", color: "#17becf", level: "HS", capacity: 1550, nonResident: 76 },
     { name: "Lakeside HS", color: "#9467bd", level: "HS", capacity: 1705, nonResident: 80 },
-    { name: "Sequoyah HS", color: "#e377c2", level: "HS", capacity: 1600, nonResident: 60, planned: true, note: "Not built yet; 60 transfer students assumed" }, // not built; starts with no zones (planned only affects the demo map)
+    { name: "Sequoyah HS", color: "#e377c2", level: "HS", capacity: 1600, nonResident: 60, planned: true, note: "Assumption of non-resident attendees" }, // not built; starts with no zones (planned only affects the demo map)
     { name: "Tucker HS", color: "#8c564b", level: "HS", capacity: 1736, nonResident: 169 }
   ],
 
