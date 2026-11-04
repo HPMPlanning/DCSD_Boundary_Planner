@@ -198,12 +198,9 @@
     .cbar .trk { position: absolute; left: 0; right: 0; top: 2px; height: 5px; background: #eceae4; overflow: hidden; display: flex; }
     .cbar .trk span { height: 100%; }
     .cbar .trk .nr { background: #8f8b82; }
-    .nrline { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: #6b6862; }
-    .nrline svg, .nrkey svg { flex: none; }
-    .nrkey { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 10px; padding: 8px 10px; background: #f5f4f0; border: 1px solid #e2dfd8; border-radius: 3px; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+    .nrkey { display: flex; align-items: center; gap: 6px; margin: -2px 0 8px; font-size: 12px; color: var(--muted); }
     .nrkey[hidden] { display: none; }
-    .nrkey .kbar { flex: none; width: 18px; height: 5px; margin-top: 6px; background: #8f8b82; }
-    .nrkey b { color: var(--ink); }
+    .nrkey .kbar { flex: none; width: 14px; height: 5px; background: #8f8b82; }
     .cbar.sm { height: 7px; } .cbar.sm .trk { height: 3px; }
     .hacard { position: relative; display: block; margin-top: 8px; border: 1px solid #c9c5bc; border-radius: 3px; background: #fff; }
     .hacard:hover, .hacard:focus-within { border-color: var(--ink); }
@@ -921,12 +918,6 @@
         b.querySelector(".seats").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
         var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
         b.appendChild(capBar(r.school.color, r.students - extra - r.nonResident, extra, r.capacity, false, r.nonResident));
-        if (r.nonResident) {
-          var nl = document.createElement("span"); nl.className = "nrline";
-          nl.innerHTML = LOCK_SVG;
-          nl.appendChild(document.createTextNode(r.nonResident.toLocaleString() + " non-resident students already counted" + (r.zones ? "" : ", no zones yet")));
-          b.appendChild(nl);
-        }
         if (HAS_PROJ) b.appendChild(meter("Projected", rp));
         b.title = r.zones + (r.zones === 1 ? " zone" : " zones") + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
@@ -972,14 +963,12 @@
     function programLabel(z) { var p = PROGRAMS.filter(function (x) { return x.level === z.program; })[0]; return (p && p.label) || z.name; }
 
     // Capacity bar: a program's students show hatched after the school's own
-    var LOCK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="1"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>';
-
-    // Explains the gray, locked part of each bar, so schools showing students on a blank map make sense
+    // Key for the gray part of each bar: non-resident students, counted before any zones are assigned
     function renderNrKey(rows) {
       var k = $("nrKey"), any = rows.some(function (r) { return r.nonResident; });
       k.hidden = !any;
       if (!any) return;
-      k.innerHTML = '<span class="kbar" aria-hidden="true"></span><span><b>Why schools don\'t start at zero:</b> the gray part of each bar is <b>non-resident students</b> who attend from outside these zones. They\'re locked to their school and counted in every plan, so you can\'t move them. Assign zones to add the students who live in them.</span>';
+      k.innerHTML = '<span class="kbar" aria-hidden="true"></span><span>Non-resident students, fixed at each school</span>';
     }
 
     function capBar(color, base, extra, cap, small, locked) {
