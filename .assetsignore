@@ -1,0 +1,10 @@
+# Files Cloudflare should not publish (only the planner page and its scripts go live)
+.git
+.github
+node_modules
+notebooks
+sample-data
+README.md
+wrangler.jsonc
+.assetsignore
+.nojekyll

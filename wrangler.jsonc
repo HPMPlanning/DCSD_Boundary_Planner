@@ -1,0 +1,9 @@
+// Cloudflare hosting: serves this folder as a static site (no build step).
+// Cloudflare's "npx wrangler deploy" reads this file. GitHub Pages ignores it.
+{
+  "name": "dcsd-boundary-planner",
+  "compatibility_date": "2025-10-01",
+  "assets": {
+    "directory": "."
+  }
+}
