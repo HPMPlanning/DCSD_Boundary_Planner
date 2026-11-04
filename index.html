@@ -280,7 +280,6 @@
         <div class="actions" id="tools">
           <button id="undoBtn" class="btn">Undo</button>
           <button id="resetBtn" class="btn">Start over</button>
-          <button id="csvBtn" class="btn">Download CSV</button>
         </div>
         <div id="dlNote" hidden></div>
       </div>
@@ -312,11 +311,11 @@
           <p>Your email app should open with your plan filled in, addressed to <b id="mailTo"></b>. Press Send in your email to submit it.</p>
           <p>If it didn't open, or the plan looks cut off, your plan is also copied: paste it into an email to <b id="mailTo2"></b>.</p>
           <textarea id="mailText" readonly rows="8" aria-label="Your plan as text"></textarea>
-          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn">Copy plan</button><button id="mailAgain" class="btn">Open email again</button><button id="mailPics" class="btn">Save map pictures</button></div>
-          <p id="picsNote" style="font-size:13px;color:var(--muted)">To add pictures of your map, select Save map pictures and attach the two images to your email. The email also has a link that opens your plan on the map.</p>
+          <div class="actions" style="margin:8px 0 14px"><button id="mailCopy" class="btn">Copy plan</button><button id="mailAgain" class="btn">Open email again</button></div>
+          <p id="picsNote" style="font-size:13px;color:var(--muted)">The email has a link that opens your plan on the map.</p>
         </div>
         <ul id="thanksNext"></ul>
-        <div class="actions" style="margin-bottom:16px"><button id="thanksCsv" class="btn">Download my plan</button><button id="thanksNew" class="btn primary">Make another plan</button></div>
+        <div class="actions" style="margin-bottom:16px"><button id="thanksNew" class="btn primary">Make another plan</button></div>
       </div>
     </div>
   </div>
@@ -1320,7 +1319,7 @@
       var allNow = tm.rows.concat(th.rows), allProj = tmp.rows.concat(thp.rows);
       var over = allNow.filter(function (r, i) { return r.status === "over" || (HAS_PROJ && allProj[i].status === "over"); });
       if (C.submitEmail) { emailPlan(tm, th, over.length); return; }
-      if (!C.submissionsTableUrl) { showMsg("Online submission is not set up yet. Use Download CSV to save your plan.", true); return; }
+      if (!C.submissionsTableUrl) { showMsg("Online submission is not set up yet.", true); return; }
       // Over-capacity plans are allowed; the count is saved with the plan
       var planId = P.makePlanId();
       var attrs = {
@@ -1367,7 +1366,7 @@
         showThanks(planId);
       }).catch(function (e) {
         btn.disabled = false;
-        showMsg("Submission failed: " + (e && e.message ? e.message : e) + " You can still download your plan as a CSV.", true);
+        showMsg("Submission failed: " + (e && e.message ? e.message : e) + " Please try again.", true);
       });
     }
 
@@ -1422,7 +1421,6 @@
         (navigator.clipboard ? navigator.clipboard.writeText(body) : Promise.reject()).catch(function () { document.execCommand("copy"); })
           .then(function () { $("mailCopy").textContent = "Copied"; });
       };
-      $("mailPics").onclick = function () { saveMapPictures(planId); };
       $("thanksMail").hidden = false;
     }
 
@@ -1457,7 +1455,6 @@
       $("reviewForm").hidden = true;
       $("thanksId").textContent = planId;
       fillList($("thanksNext"), C.nextSteps || []);
-      $("thanksCsv").onclick = function () { downloadCsv(planId); };
       $("thanks").hidden = false;
       $("thanks").focus();
     }
@@ -1509,7 +1506,6 @@
         resetAssignments(); setLevel(state.level); $("last").textContent = ""; $("dlNote").hidden = true;
       });
     };
-    $("csvBtn").onclick = function () { downloadCsv(); };
     $("submitBtn").onclick = submitPlan;
     $("reviewBtn").onclick = openReview;
     $("reviewBack").onclick = function () { $("review").hidden = true; };
