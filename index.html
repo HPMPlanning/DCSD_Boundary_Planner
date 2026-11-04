@@ -20,7 +20,7 @@
     #mapHead { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: #fff; }
     #logo { height: 60px; width: auto; flex: 0 0 auto; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
     #mapHead h1 { flex: 0 1 auto; white-space: nowrap; margin: 0; font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-size: 30px; font-weight: 400; letter-spacing: .02em; line-height: 1; color: var(--ink); }
-    .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 2px; cursor: pointer; font-size: 14px; }
+    .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 0; cursor: pointer; font-size: 14px; }
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
     .btn:disabled { color: #a3abb5; cursor: default; }
     .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -154,7 +154,7 @@
     @media (max-width: 560px) { .cols { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { #logo { height: 48px; padding-right: 0; border-right: 0; } #mapHead h1 { flex-basis: 100%; font-size: 24px; } }
     label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
-    input, textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 2px; font: inherit; font-size: 14px; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 0; font: inherit; font-size: 14px; }
     textarea { min-height: 80px; resize: vertical; }
     input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
     #msg { font-size: 13px; margin-top: 10px; line-height: 1.4; }
@@ -197,6 +197,13 @@
     .cbar { position: relative; display: block; height: 9px; width: 100%; }
     .cbar .trk { position: absolute; left: 0; right: 0; top: 2px; height: 5px; background: #eceae4; overflow: hidden; display: flex; }
     .cbar .trk span { height: 100%; }
+    .cbar .trk .nr { background: #8f8b82; }
+    .fnotes { margin: 6px 0 0; font-size: 11.5px; line-height: 1.35; color: var(--muted); }
+    .fnotes p { margin: 0 0 1px; padding-left: 18px; text-indent: -18px; }
+    .fnotes .kbar { display: inline-block; width: 12px; height: 4px; margin-right: 6px; vertical-align: middle; text-indent: 0; background: #8f8b82; }
+    .fnotes .kbar.ha { height: 6px; background: repeating-linear-gradient(135deg, #5a5759 0 2px, #d9dadc 2px 4px); }
+    .fnotes .mk { display: inline-block; width: 12px; margin-right: 6px; text-indent: 0; text-align: center; }
+    .r1 .fn { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: -5px; align-self: flex-start; }
     .cbar.sm { height: 7px; } .cbar.sm .trk { height: 3px; }
     .hacard { position: relative; display: block; margin-top: 8px; border: 1px solid #c9c5bc; border-radius: 3px; background: #fff; }
     .hacard:hover, .hacard:focus-within { border-color: var(--ink); }
@@ -216,13 +223,30 @@
     #uc h1 { margin: 0; font-size: 30px; font-weight: 400; }
     #uc .uc-tag { margin: 14px 0 6px; font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-size: 28px; letter-spacing: .04em; color: var(--accent); }
     #uc p { margin: 0; font-size: 17px; color: var(--muted); }
+    /* Side panel: square boxes that match the header and tool buttons, in the district colors */
+    #panel .tabs { gap: 8px; }
+    #panel .tabs button { border: 1px solid var(--line); border-radius: 0; font-size: 14px; padding: 8px 14px; color: var(--muted); }
+    #panel .tabs button + button { border-left: 1px solid var(--line); }
+    #panel .tabs button:hover { border-color: #9aa4b0; }
+    #panel .tabs button.active { background: #fff; color: var(--ink); font-weight: 700; border-color: var(--ink); }
+    #panel .sechead h2 { font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-weight: 400; font-size: 24px; letter-spacing: .02em; line-height: 1; }
+    #panel .slist { border-color: var(--line); border-radius: 0; background: var(--line); }
+    #panel .unas, #panel .hacard { border-color: var(--line); border-radius: 0; }
+    #panel .slist .unas { margin: 0; border: 0; border-radius: 0; min-height: 44px; padding: 10px; }
+    #panel .slist .unas:hover { background: #f7f6f2; }
+    /* Selected school or Unassigned: one neutral highlight, the same dark outline as the selected tab */
+    #panel .sitem.on, #panel .unas.on { background: #f5f5f5; box-shadow: inset 0 0 0 2px var(--ink); }
+    #panel .fnotes { margin-top: 8px; }
+    #panelFoot .btn.primary { background: #fff; color: var(--ink); border-color: var(--line); }
+    #panelFoot .btn.primary:hover:not(:disabled) { background: #fff; border-color: #9aa4b0; }
+    #panelFoot .btn.primary:disabled { color: #a3abb5; border-color: var(--line); }
   </style>
 </head>
 <body>
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=61" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=79" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -314,7 +338,7 @@
       <h3>About "nearest school"</h3>
       <p>The button that fills zones with the nearest school measures a straight line from the center point of each elementary zone to each school. It doesn't use driving distance or where students live within the zone, so treat it as a starting point and adjust from there.</p>
       <h3>About the numbers</h3>
-      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone. Each school's total also includes a fixed number of <b>non-resident students</b> who attend from outside these zones. They stay at their school in every plan.</p>
+      <p>On the map, each zone shows its <b>Middle Students</b> (grades 6 to 8) on the Middle school tab and its <b>High Students</b> (grades 9 to 12) on the High school tab: the students who live in that elementary zone. Each school's total also includes a fixed number of <b>non-resident students</b> who attend from outside these zones. They're locked to their school in every plan, which is why schools already show some students before you assign any zones. They show as the gray part of each school's bar. At Sequoyah HS, the number of non-resident attendees is an assumption. Chamblee's non-resident students don't include High Achievers magnet students, who count toward whichever school you pick with the <b>High Achievers Program</b> dropdown.</p>
       <div class="actions"><button id="welcomeOk" class="btn primary">Get started</button></div>
     </div>
   </div>
@@ -326,10 +350,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=61"></script>
-  <script src="planner-core.js?v=61"></script>
+  <script src="config.js?v=79"></script>
+  <script src="planner-core.js?v=79"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=61" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=79" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -357,9 +381,9 @@
     // ArcGIS Online sign-in page, which supports organization (SSO) logins
     var appId = new URLSearchParams(location.search).get("appid") || C.oauthAppId;
     if (appId) esriId.registerOAuthInfos([new OAuthInfo({ appId: appId, portalUrl: C.portalUrl || "https://www.arcgis.com", popup: false })]);
-    // Projected enrollment is shown only when the layer has projected fields (always in demo mode)
+    // Projected enrollment is shown only when the layer has projected fields
     var FRAMED = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
-    var HAS_PROJ = !C.zonesLayerUrl || !!(F.msProjected && F.hsProjected);
+    var HAS_PROJ = !!(F.msProjected && F.hsProjected);
     var state = { level: "MS", brush: null, zones: [], schools: [], assign: { MS: {}, HS: {} }, history: [], submitted: false };
     var $ = function (id) { return document.getElementById(id); };
     // A trailing "(...)" in the title shows as a smaller second line
@@ -905,6 +929,10 @@
         b.innerHTML = '<span class="r1"><span class="sw"></span><span class="nm"></span><span class="seats"></span><span class="pc"></span></span>';
         b.querySelector(".sw").style.background = r.school.color;
         b.querySelector(".nm").textContent = r.school.name;
+        if (r.school.note) {
+          var fn = document.createElement("span"); fn.className = "fn"; fn.textContent = noteMark(tc.rows, r);
+          b.querySelector(".nm").after(fn);
+        }
         if (hosted.length) {
           var st = document.createElement("span"); st.className = "star"; st.textContent = "\u2605";
           st.setAttribute("aria-label", "Hosts " + hosted.map(function (z) { return programLabel(z); }).join(", "));
@@ -912,21 +940,22 @@
         }
         b.querySelector(".seats").textContent = r.students.toLocaleString() + " / " + r.capacity.toLocaleString();
         var pc = b.querySelector(".pc"); pc.textContent = r.pct + "%"; pc.className = "pc" + (r.status === "over" ? " over" : "");
-        b.appendChild(capBar(r.school.color, r.students - extra, extra, r.capacity, false));
+        b.appendChild(capBar(r.school.color, r.students - extra - r.nonResident, extra, r.capacity, false, r.nonResident));
         if (HAS_PROJ) b.appendChild(meter("Projected", rp));
-        b.title = r.zones + " zones" + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
+        b.title = r.zones + (r.zones === 1 ? " zone" : " zones") + (r.nonResident ? ", plus " + r.nonResident + " non-resident students who always attend here" : "");
         b.onclick = function () { state.brush = r.school.id; renderPanel(); };
         list.appendChild(b);
       });
       box.appendChild(list);
-      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
       var e = document.createElement("button");
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
       e.setAttribute("aria-pressed", String(state.brush === ""));
       e.innerHTML = '<span class="sw none"></span>';
       e.appendChild(document.createTextNode("Unassigned zone"));
       e.onclick = function () { state.brush = ""; renderPanel(); };
-      box.appendChild(e);
+      list.appendChild(e);
+      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
+      box.appendChild(footnotes(tc.rows));
 
       var u = tc.unassigned, up = tp.unassigned, un = $("unassigned"), lvl = state.level === "MS" ? "middle" : "high";
       un.innerHTML = "<strong></strong><span></span>";
@@ -957,15 +986,44 @@
     function programLabel(z) { var p = PROGRAMS.filter(function (x) { return x.level === z.program; })[0]; return (p && p.label) || z.name; }
 
     // Capacity bar: a program's students show hatched after the school's own
-    function capBar(color, base, extra, cap, small) {
+    // Footnotes under the school list: the gray (non-resident) part of each bar, then any school notes from config.js
+    function noteMark(rows, r) {
+      return String(rows.filter(function (x) { return x.school.note; }).indexOf(r) + 1);
+    }
+    function footnotes(rows) {
+      var box = document.createElement("div"); box.className = "fnotes";
+      var line = function (lead, text) {
+        var p = document.createElement("p"); p.appendChild(lead); p.appendChild(document.createTextNode(text)); box.appendChild(p);
+      };
+      if (rows.some(function (r) { return r.nonResident; })) {
+        var k = document.createElement("span"); k.className = "kbar"; k.setAttribute("aria-hidden", "true");
+        line(k, "Non-resident students, fixed in every plan");
+      }
+      if (programsFor(state.level).length) {
+        var h = document.createElement("span"); h.className = "kbar ha"; h.setAttribute("aria-hidden", "true");
+        line(h, "High Achievers Program students (\u2605 marks the host school)");
+      }
+      rows.forEach(function (r) {
+        if (!r.school.note) return;
+        var m = document.createElement("span"); m.className = "mk"; m.textContent = noteMark(rows, r);
+        line(m, r.school.note);
+      });
+      return box;
+    }
+
+    function capBar(color, base, extra, cap, small, locked) {
       // The bar's right end is 100% of capacity; a school over capacity shows a full red bar
       var w = function (n) { return cap > 0 ? Math.min(n / cap, 1) * 100 : 0; };
-      if (base + extra > cap) color = "#c8102e";
+      locked = locked || 0;
+      var over = locked + base + extra > cap;
+      if (over) color = "#c8102e";
       var bar = document.createElement("span"); bar.className = "cbar" + (small ? " sm" : "");
-      bar.innerHTML = '<span class="trk"><span class="base"></span><span class="ha"></span></span>';
-      var bw = w(base);
+      bar.innerHTML = '<span class="trk"><span class="nr"></span><span class="base"></span><span class="ha"></span></span>';
+      var lw = w(locked);
+      bar.querySelector(".nr").style.cssText = "width:" + lw + "%" + (over ? ";background:" + color : "");
+      var bw = Math.max(0, w(locked + base) - lw);
       bar.querySelector(".base").style.cssText = "width:" + bw + "%;background:" + color;
-      bar.querySelector(".ha").style.cssText = "width:" + Math.max(0, w(base + extra) - bw) + "%;background:repeating-linear-gradient(135deg," + color + " 0 " + (small ? 2 : 3) + "px," + cssRgba(color, 0.35) + " " + (small ? 2 : 3) + "px " + (small ? 4 : 6) + "px)";
+      bar.querySelector(".ha").style.cssText = "width:" + Math.max(0, w(locked + base + extra) - lw - bw) + "%;background:repeating-linear-gradient(135deg," + color + " 0 " + (small ? 2 : 3) + "px," + cssRgba(color, 0.35) + " " + (small ? 2 : 3) + "px " + (small ? 4 : 6) + "px)";
       return bar;
     }
 
