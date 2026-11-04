@@ -23,8 +23,8 @@
     .btn { padding: 8px 14px; border: 1px solid var(--line); background: #fff; border-radius: 0; cursor: pointer; font-size: 14px; }
     .btn:hover:not(:disabled) { border-color: #9aa4b0; }
     .btn:disabled { color: #a3abb5; cursor: default; }
-    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .btn.primary:hover:not(:disabled) { background: #13628a; border-color: #13628a; }
+    /* Main actions (Submit plan, OK, Get started) use the same plain style as every other button */
+    .btn.primary { background: #fff; border-color: var(--line); color: var(--ink); }
     .btn.primary:disabled { background: #fff; border-color: var(--line); color: #a3abb5; }
     #legend { position: absolute; right: 20px; top: calc(100% + 6px); z-index: 20; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.12); padding: 10px 14px; min-width: 200px; font-size: 13px; }
     #legend[hidden] { display: none; }
@@ -237,16 +237,13 @@
     /* Selected school or Unassigned: one neutral highlight, the same dark outline as the selected tab */
     #panel .sitem.on, #panel .unas.on { background: #f5f5f5; box-shadow: inset 0 0 0 2px var(--ink); }
     #panel .fnotes { margin-top: 8px; }
-    #panelFoot .btn.primary { background: #fff; color: var(--ink); border-color: var(--line); }
-    #panelFoot .btn.primary:hover:not(:disabled) { background: #fff; border-color: #9aa4b0; }
-    #panelFoot .btn.primary:disabled { color: #a3abb5; border-color: var(--line); }
   </style>
 </head>
 <body>
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=79" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=80" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -350,10 +347,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=79"></script>
-  <script src="planner-core.js?v=79"></script>
+  <script src="config.js?v=80"></script>
+  <script src="planner-core.js?v=80"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=79" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=80" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -1020,7 +1017,7 @@
       var bar = document.createElement("span"); bar.className = "cbar" + (small ? " sm" : "");
       bar.innerHTML = '<span class="trk"><span class="nr"></span><span class="base"></span><span class="ha"></span></span>';
       var lw = w(locked);
-      bar.querySelector(".nr").style.cssText = "width:" + lw + "%" + (over ? ";background:" + color : "");
+      bar.querySelector(".nr").style.width = lw + "%";
       var bw = Math.max(0, w(locked + base) - lw);
       bar.querySelector(".base").style.cssText = "width:" + bw + "%;background:" + color;
       bar.querySelector(".ha").style.cssText = "width:" + Math.max(0, w(locked + base + extra) - lw - bw) + "%;background:repeating-linear-gradient(135deg," + color + " 0 " + (small ? 2 : 3) + "px," + cssRgba(color, 0.35) + " " + (small ? 2 : 3) + "px " + (small ? 4 : 6) + "px)";
