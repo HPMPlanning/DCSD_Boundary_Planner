@@ -222,34 +222,23 @@
     #uc h1 { margin: 0; font-size: 30px; font-weight: 400; }
     #uc .uc-tag { margin: 14px 0 6px; font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-size: 28px; letter-spacing: .04em; color: var(--accent); }
     #uc p { margin: 0; font-size: 17px; color: var(--muted); }
-    /* Side panel: editorial layout (hairline rows, square corners, no shadows) in the header's type and the district colors */
-    #panel { border-left-color: var(--line); }
-    #panelBody { padding: 20px 22px; }
-    #panel p.intro { font-size: 15px; line-height: 1.45; margin-bottom: 16px; }
-    #panel .tabs { margin-bottom: 20px; }
-    #panel .tabs button { border-color: var(--accent); border-radius: 0; color: var(--accent); font-weight: 700; font-size: 15px; padding: 9px 8px; }
-    #panel .tabs button.active { background: var(--accent); color: #fff; }
-    #panel .sechead { margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
-    #panel .sechead h2 { font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-weight: 400; font-size: 26px; letter-spacing: .02em; line-height: 1; }
-    #panel .slist { gap: 0; background: none; border: 0; border-radius: 0; }
-    #panel .sitem { padding: 11px 10px 9px; border-bottom: 1px solid var(--line); }
-    #panel .sitem:hover { background: #f5f5f5; }
-    #panel .sitem.on { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
-    #panel .r1 .nm { font-size: 15px; }
-    #panel .r1 .seats { color: var(--muted); }
+    /* Side panel: square boxes that match the header and tool buttons, in the district colors */
+    #panel .tabs button { border-radius: 0; }
+    #panel .tabs button.active { background: #f0f0f0; color: var(--ink); font-weight: 700; border-color: var(--line); box-shadow: inset 0 0 0 2px var(--accent); }
+    #panel .sechead h2 { font-family: "Bebas Neue", Calibri, Carlito, sans-serif; font-weight: 400; font-size: 24px; letter-spacing: .02em; line-height: 1; }
+    #panel .slist { border-color: var(--line); border-radius: 0; background: var(--line); }
+    #panel .unas, #panel .hacard { border-color: var(--line); border-radius: 0; }
     #panel .fnotes { margin-top: 8px; }
-    #panel .slist .unas { margin: 0; min-height: 44px; padding: 11px 10px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; font-size: 15px; }
-    #panel .slist .unas:hover { background: #f5f5f5; }
-    #panel .hacard { margin-top: 14px; border-radius: 0; border-color: var(--line); }
-    #panel .unas.on { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
-    #panel .callout { margin: 14px 0 14px; border-left-width: 3px; }
+    #panelFoot .btn.primary { background: #fff; color: var(--accent); border-color: var(--accent); font-weight: 700; }
+    #panelFoot .btn.primary:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); }
+    #panelFoot .btn.primary:disabled { color: #a3abb5; border-color: var(--line); }
   </style>
 </head>
 <body>
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=69" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=70" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -353,10 +342,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=69"></script>
-  <script src="planner-core.js?v=69"></script>
+  <script src="config.js?v=70"></script>
+  <script src="planner-core.js?v=70"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=69" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=70" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -950,15 +939,15 @@
         list.appendChild(b);
       });
       box.appendChild(list);
+      box.appendChild(footnotes(tc.rows));
+      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
       var e = document.createElement("button");
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
       e.setAttribute("aria-pressed", String(state.brush === ""));
       e.innerHTML = '<span class="sw none"></span>';
       e.appendChild(document.createTextNode("Unassigned zone"));
       e.onclick = function () { state.brush = ""; renderPanel(); };
-      list.appendChild(e);
-      box.appendChild(footnotes(tc.rows));
-      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
+      box.appendChild(e);
 
       var u = tc.unassigned, up = tp.unassigned, un = $("unassigned"), lvl = state.level === "MS" ? "middle" : "high";
       un.innerHTML = "<strong></strong><span></span>";
