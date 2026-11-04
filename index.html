@@ -431,7 +431,15 @@
       }
       resetAssignments();
       if (PLAN_PARAM) {
-        if (applyPlanCode(PLAN_PARAM)) $("last").textContent = "Showing a plan opened from a link.";
+        if (applyPlanCode(PLAN_PARAM)) {
+          $("last").textContent = "Showing a plan opened from a link.";
+          // Opened from the embedded page's "download in a new tab" link: save the CSV here
+          if (DOWNLOAD_PARAM === "csv") {
+            var pid = (new URLSearchParams(location.search).get("pid") || "").replace(/[^\w-]/g, "");
+            try { var u = new URL(location.href); u.searchParams.delete("download"); u.searchParams.delete("pid"); history.replaceState(null, "", u.toString()); } catch (e) {}
+            setTimeout(function () { downloadCsv(pid || undefined); }, 300);
+          }
+        }
         else $("last").textContent = "That plan link didn't match these zones, so the map starts fresh.";
       }
       buildLayer();
@@ -529,6 +537,7 @@
     // A plan as a short link code: one character per zone (sorted by name) giving the
     // school's place in the name-sorted list for that level, 0 for none; MS-HS
     var PLAN_PARAM = new URLSearchParams(location.search).get("plan") || "";
+    var DOWNLOAD_PARAM = new URLSearchParams(location.search).get("download") || "";
     function byName(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }
     function planSchools(level) { return P.schoolsFor(state.schools, level).slice().sort(byName); }
     function planCode() {
@@ -541,6 +550,17 @@
     function planLink() {
       if (planSchools("MS").length > 35 || planSchools("HS").length > 35) return "";
       return location.origin + location.pathname + "?plan=" + planCode();
+    }
+    // This page in its own tab with the current plan (keeping zones/appid etc.),
+    // set to download the CSV as soon as it loads
+    function ownTabDownloadLink(planId) {
+      if (planSchools("MS").length > 35 || planSchools("HS").length > 35) return location.href;
+      var u = new URL(location.href);
+      u.searchParams.set("plan", planCode());
+      u.searchParams.set("download", "csv");
+      if (planId) u.searchParams.set("pid", planId); else u.searchParams.delete("pid");
+      u.hash = "";
+      return u.toString();
     }
     function applyPlanCode(code) {
       var parts = String(code).split("-"), zs = state.zones.slice().sort(byName);
@@ -1272,6 +1292,13 @@
 
     function downloadCsv(planId) {
       var csv = planCsv();
+      // Experience Builder's Embed widget blocks file downloads from inside it, so when
+      // embedded, open this page (with the plan) in its own tab, which saves the CSV itself
+      if (FRAMED) {
+        var w = null;
+        try { w = window.open(ownTabDownloadLink(planId), "_blank"); } catch (e) {}
+        if (w) { showDownloadHelp(csv, planId, true); return; }
+      }
       var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       var a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -1283,11 +1310,13 @@
 
     // Pages embedded in Experience Builder can't always download files, so offer
     // the plan as copyable text and a link to open the planner in its own tab.
-    function showDownloadHelp(csv, planId) {
+    function showDownloadHelp(csv, planId, openedTab) {
       var box = planId ? $("thanks") : null, note = $("dlNote");
       note.hidden = false;
-      note.innerHTML = 'If no file downloaded, your browser blocked it inside this page. <a target="_blank" rel="noopener">Open the planner in its own tab</a> to download, or <button class="link" type="button">show the plan as text</button> to copy.';
-      note.querySelector("a").href = location.href;
+      note.innerHTML = openedTab
+        ? 'Your plan opened in a new tab to download the CSV. If nothing opened, <a target="_blank" rel="noopener">download it in a new tab</a> or <button class="link" type="button">show the plan as text</button> to copy.'
+        : 'If no file downloaded, your browser blocked it inside this page. <a target="_blank" rel="noopener">Download it in a new tab</a> (your plan comes with you), or <button class="link" type="button">show the plan as text</button> to copy.';
+      note.querySelector("a").href = ownTabDownloadLink(planId);
       note.querySelector("button").onclick = function () {
         var t = $("csvText") || document.createElement("textarea");
         t.id = "csvText"; t.readOnly = true; t.value = csv;
