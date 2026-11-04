@@ -242,7 +242,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=74" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=75" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -346,10 +346,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=74"></script>
-  <script src="planner-core.js?v=74"></script>
+  <script src="config.js?v=75"></script>
+  <script src="planner-core.js?v=75"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=74" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=75" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -943,8 +943,8 @@
         list.appendChild(b);
       });
       box.appendChild(list);
-      box.appendChild(footnotes(tc.rows));
       progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
+      box.appendChild(footnotes(tc.rows));
       var e = document.createElement("button");
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
       e.setAttribute("aria-pressed", String(state.brush === ""));
