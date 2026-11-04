@@ -242,7 +242,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=75" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=77" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -346,10 +346,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=75"></script>
-  <script src="planner-core.js?v=75"></script>
+  <script src="config.js?v=77"></script>
+  <script src="planner-core.js?v=77"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=75" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=77" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -921,7 +921,12 @@
         var b = document.createElement("button");
         b.type = "button"; b.className = "sitem"; b.setAttribute("role", "listitem");
         b.setAttribute("aria-pressed", String(state.brush === r.school.id));
-        if (state.brush === r.school.id) { b.className += " on"; }
+        if (state.brush === r.school.id) {
+          // Selected school: tinted in its own map color, with a solid bar on the left
+          b.className += " on";
+          b.style.background = "linear-gradient(" + cssRgba(r.school.color, 0.12) + "," + cssRgba(r.school.color, 0.12) + "), #fff";
+          b.style.boxShadow = "inset 5px 0 0 " + r.school.color + ", inset 0 0 0 1px " + r.school.color;
+        }
         b.innerHTML = '<span class="r1"><span class="sw"></span><span class="nm"></span><span class="seats"></span><span class="pc"></span></span>';
         b.querySelector(".sw").style.background = r.school.color;
         b.querySelector(".nm").textContent = r.school.name;
@@ -943,8 +948,6 @@
         list.appendChild(b);
       });
       box.appendChild(list);
-      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
-      box.appendChild(footnotes(tc.rows));
       var e = document.createElement("button");
       e.type = "button"; e.className = "unas" + (state.brush === "" ? " on" : "");
       e.setAttribute("aria-pressed", String(state.brush === ""));
@@ -952,6 +955,8 @@
       e.appendChild(document.createTextNode("Unassigned zone"));
       e.onclick = function () { state.brush = ""; renderPanel(); };
       box.appendChild(e);
+      progs.forEach(function (z) { box.appendChild(programCard(z, tc.rows)); });
+      box.appendChild(footnotes(tc.rows));
 
       var u = tc.unassigned, up = tp.unassigned, un = $("unassigned"), lvl = state.level === "MS" ? "middle" : "high";
       un.innerHTML = "<strong></strong><span></span>";
