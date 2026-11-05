@@ -47,7 +47,7 @@ window.PLANNER_CONFIG = {
   submitEmail: "",
   // Web address the "see this plan on the map" link in submissions opens, such as the
   // district website's planner page. Leave "" to use whatever address the page was opened at.
-  planLinkUrl: "https://dcsd.hpmleadership.com/",
+  planLinkUrl: "https://dcsd.hpmplanning.com/",
 
   // Field names in the zones layer. "" means the layer doesn't have it.
   fields: {
