@@ -45,6 +45,9 @@ window.PLANNER_CONFIG = {
   submissionsTableUrl: "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/Submissions/FeatureServer",
   // Submitted plans open in the person's email app, addressed here (used instead of the table when set)
   submitEmail: "",
+  // Web address the "see this plan on the map" link in submissions opens, such as the
+  // district website's planner page. Leave "" to use whatever address the page was opened at.
+  planLinkUrl: "https://dcsd.hpmleadership.com/",
 
   // Field names in the zones layer. "" means the layer doesn't have it.
   fields: {
