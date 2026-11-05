@@ -73,6 +73,7 @@ table_def = {
     "fields": [
         {"name": "OBJECTID", "type": "esriFieldTypeOID", "alias": "OBJECTID", "nullable": False, "editable": False},
         text("plan_id", "Plan ID", 40),
+        text("option", "Boundary option", 10),
         {"name": "submitted_at", "type": "esriFieldTypeDate", "alias": "Submitted", "nullable": True, "editable": True},
         text("submitter_name", "Name", 100),
         text("submitter_email", "Email", 150),

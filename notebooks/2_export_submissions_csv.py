@@ -10,15 +10,27 @@ from arcgis.features import FeatureLayer
 gis = GIS("home")
 
 STAFF_VIEW_ITEM_ID = "PASTE_STAFF_VIEW_ITEM_ID_HERE"
-ZONES_LAYER_URL = "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/DEKALBAPPNOTREALDATA/FeatureServer/0"
+# One zones layer per boundary option, same as the options in config.js. Plans
+# submitted before options existed have no option and are read as Option A.
+ZONES_LAYER_URLS = {
+    "A": "https://services3.arcgis.com/3TzhpgpIaE4cOUGc/arcgis/rest/services/DEKALBAPPNOTREALDATA/FeatureServer/0",
+    # "B": "PASTE_OPTION_B_ZONES_LAYER_URL",
+    # "C": "PASTE_OPTION_C_ZONES_LAYER_URL",
+    # "D": "PASTE_OPTION_D_ZONES_LAYER_URL",
+}
 ZONE_ID_FIELD = "OBJECTID"     # same as config.js fields.zoneId (OBJECTID when that is "")
 ZONE_NAME_FIELD = "Campus"
 
 subs = gis.content.get(STAFF_VIEW_ITEM_ID).tables[0].query(where="1=1", out_fields="*", as_df=True)
-zones = FeatureLayer(ZONES_LAYER_URL, gis=gis).query(where="1=1", out_fields="*",
-                                                         return_geometry=False, as_df=True)
-id_col = ZONE_ID_FIELD if ZONE_ID_FIELD in zones.columns else "OBJECTID"
-zone_names = dict(zip(zones[id_col].astype(str), zones[ZONE_NAME_FIELD]))
+if "option" not in subs.columns:
+    subs["option"] = "A"
+subs["option"] = subs["option"].fillna("").astype(str).str.strip().str.upper().replace("", "A")
+
+zone_names = {}
+for opt, url in ZONES_LAYER_URLS.items():
+    zones = FeatureLayer(url, gis=gis).query(where="1=1", out_fields="*", return_geometry=False, as_df=True)
+    id_col = ZONE_ID_FIELD if ZONE_ID_FIELD in zones.columns else "OBJECTID"
+    zone_names[opt] = dict(zip(zones[id_col].astype(str), zones[ZONE_NAME_FIELD]))
 
 
 def decode(text):
@@ -35,9 +47,9 @@ for _, s in subs.iterrows():
     ms, hs = decode(s["ms_plan"]), decode(s["hs_plan"])
     for zid in sorted(set(ms) | set(hs)):
         rows.append({
-            "plan_id": s["plan_id"], "submitted_at": s["submitted_at"],
+            "plan_id": s["plan_id"], "option": s["option"], "submitted_at": s["submitted_at"],
             "submitter_name": s["submitter_name"], "submitter_email": s["submitter_email"],
-            "zone_id": zid, "zone_name": zone_names.get(zid, ""),
+            "zone_id": zid, "zone_name": zone_names.get(s["option"], {}).get(zid, ""),
             "middle_school": ms.get(zid, ""), "high_school": hs.get(zid, ""),
         })
 

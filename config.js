@@ -1,7 +1,7 @@
 // Boundary Planner settings.
 // Leave zonesLayerUrl empty to run with built-in demo zones.
 window.PLANNER_CONFIG = {
-  title: "Community Boundary Builder (Engagement Session 3 Option A Only)",
+  title: "Community Boundary Builder (Engagement Session 3 Option A)",
   intro:
     "Pick a school, then click elementary zones on the map to assign them. " +
     "Double-click a zone to unassign it.",
@@ -93,6 +93,31 @@ window.PLANNER_CONFIG = {
   nextSteps: [
     "Your plan goes directly to the district's boundary planning team.",
     "The team reviews every submitted plan, along with your comments, as part of the community feedback that shapes boundary options."
+  ],
+
+  // Boundary options people can switch between. The first one opens by default, and
+  // ?option=B in the address opens another. Any setting above (title, zonesLayerUrl,
+  // and so on) can be given again inside an option to replace it for that option only.
+  // addSchools adds schools that exist only in that option, such as an elementary
+  // reopened as a middle school. pointName (optional) is the name the school has in
+  // the school points layer today, so it gets a map pin and counts for "nearest school".
+  // blurb: one or two sentences shown on the welcome screen for that option.
+  // PREVIEW: B, C and D still use Option A's zones layer and placeholder schools.
+  options: [
+    { id: "A", label: "Option A",
+      blurb: "Option A keeps every elementary school open." },
+    { id: "B", label: "Option B",
+      title: "Community Boundary Builder (Engagement Session 3 Option B)",
+      blurb: "Option B closes one elementary school and reopens it as a new middle school. (Preview: placeholder zones and school.)",
+      addSchools: [{ name: "New MS Option B", color: "#bcbd22", level: "MS", capacity: 900, nonResident: 0, planned: true, pointName: "" }] },
+    { id: "C", label: "Option C",
+      title: "Community Boundary Builder (Engagement Session 3 Option C)",
+      blurb: "Option C closes a different elementary school and reopens it as a new middle school. (Preview: placeholder zones and school.)",
+      addSchools: [{ name: "New MS Option C", color: "#bcbd22", level: "MS", capacity: 900, nonResident: 0, planned: true, pointName: "" }] },
+    { id: "D", label: "Option D",
+      title: "Community Boundary Builder (Engagement Session 3 Option D)",
+      blurb: "Option D closes a third elementary school and reopens it as a new middle school. (Preview: placeholder zones and school.)",
+      addSchools: [{ name: "New MS Option D", color: "#bcbd22", level: "MS", capacity: 900, nonResident: 0, planned: true, pointName: "" }] }
   ],
 
   // Where the map opens (DeKalb County); it then fits the zones exactly
