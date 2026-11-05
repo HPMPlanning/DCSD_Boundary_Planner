@@ -280,7 +280,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=80" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=81" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -383,10 +383,10 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=80"></script>
-  <script src="planner-core.js?v=80"></script>
+  <script src="config.js?v=81"></script>
+  <script src="planner-core.js?v=81"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=80" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=81" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
@@ -576,7 +576,8 @@
     }
     function planLink() {
       if (planSchools("MS").length > 35 || planSchools("HS").length > 35) return "";
-      return location.origin + location.pathname + "?plan=" + planCode();
+      var base = String(C.planLinkUrl || "").trim().split(/[?#]/)[0] || location.origin + location.pathname;
+      return base + "?plan=" + planCode();
     }
     function applyPlanCode(code) {
       var parts = String(code).split("-"), zs = state.zones.slice().sort(byName);
