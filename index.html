@@ -841,20 +841,45 @@
       layer.when(function () { return layer.queryExtent(); }).then(function (r) {
         return r.extent ? view.goTo(r.extent.expand(1.1), { animate: false }) : null;
       }).catch(function (e) { console.error(e); }).then(showMap);
-      view.on("click", function (evt) {
-        view.hitTest(evt, { include: [layer] }).then(function (res) {
+      // Clicks are handled ourselves rather than with the map's own click and
+      // double-click events. The map waits 250 ms after a click to see whether a
+      // second one follows, and only counts two clicks as a double-click inside that
+      // 250 ms, about half a normal double-click. A slower double-click came through
+      // as two clicks and assigned the zone. Instead, every click assigns right
+      // away, and a second click on the same zone soon after takes that back and
+      // unassigns the zone.
+      var tapQueue = Promise.resolve();
+      view.on("immediate-click", function (evt) {
+        var at = Date.now();
+        // Look up the zones one click at a time, so the clicks are handled in the order they were made
+        tapQueue = tapQueue.then(function () {
+          return view.hitTest(evt, { include: [layer] });
+        }).then(function (res) {
           var hit = res.results.filter(function (r) { return r.graphic && r.graphic.layer === layer; })[0];
-          if (hit) assignZone(hit.graphic.attributes.zone_id);
-        });
+          handleTap(hit ? hit.graphic.attributes.zone_id : null, at);
+        }).catch(function (e) { console.error(e); });
       });
-      // Double-click unassigns a zone instead of zooming in
-      view.on("double-click", function (evt) {
-        evt.stopPropagation();
-        view.hitTest(evt, { include: [layer] }).then(function (res) {
-          var hit = res.results.filter(function (r) { return r.graphic && r.graphic.layer === layer; })[0];
-          if (hit) unassignZone(hit.graphic.attributes.zone_id);
-        });
-      });
+      // Double-clicking doesn't zoom in, since it unassigns a zone instead
+      view.on("double-click", function (evt) { evt.stopPropagation(); });
+    }
+
+    // Two clicks on the same zone this close together count as a double-click
+    var DOUBLE_CLICK_MS = 500;
+    var lastTap = { zoneId: null, at: 0, step: null, doubled: false };
+    function handleTap(zoneId, at) {
+      var again = zoneId && zoneId === lastTap.zoneId && at - lastTap.at < DOUBLE_CLICK_MS;
+      if (!again) {
+        var n = state.history.length;
+        lastTap = { zoneId: zoneId, at: at, step: null, doubled: false };
+        if (!zoneId) return;
+        assignZone(zoneId);
+        if (state.history.length > n) lastTap.step = state.history[state.history.length - 1];
+        return;
+      }
+      lastTap.at = at;
+      if (lastTap.doubled) return; // a third quick click doesn't assign the zone again
+      lastTap.doubled = true;
+      unassignZone(zoneId, lastTap.step);
     }
 
     // Zone labels: the name, then the students for the tab, e.g. "245 Middle Students"
@@ -944,14 +969,20 @@
       renderPanel();
     }
 
-    // The clicks of a double-click assign the zone first; fold that into one unassign step
-    function unassignZone(zoneId) {
-      var h = state.history[state.history.length - 1];
-      if (h && h.zoneId === zoneId && h.level === state.level && Date.now() - h.at < 800) {
+    // The first click of a double-click assigned the zone; take that step back so
+    // Undo sees one change, the unassign
+    function unassignZone(zoneId, firstClickStep) {
+      var a = state.assign[state.level];
+      if (firstClickStep && state.history[state.history.length - 1] === firstClickStep) {
         state.history.pop();
-        if (h.prev) state.assign[h.level][zoneId] = h.prev; else delete state.assign[h.level][zoneId];
+        if (firstClickStep.prev) a[zoneId] = firstClickStep.prev; else delete a[zoneId];
       }
-      assignZone(zoneId, "");
+      if (a[zoneId]) { assignZone(zoneId, ""); return; }
+      // Already unassigned once the first click is taken back: redraw what the first click painted
+      refreshLayer(zoneId);
+      var z = state.zones.filter(function (x) { return x.id === zoneId; })[0];
+      $("last").textContent = (z ? z.name : zoneId) + " unassigned.";
+      renderPanel();
     }
 
     function undo() {
