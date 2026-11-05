@@ -99,7 +99,7 @@
       if (!name || !level) { errors.push("A school in config.js is missing its name or level (MS or HS)."); return; }
       if (!(cap > 0)) { errors.push(name + " needs a capacity greater than 0 in config.js."); return; }
       if (found[key(level, name)]) { errors.push(name + " is listed twice in config.js."); return; }
-      found[key(level, name)] = { id: name, name: name, level: level, capacity: cap, color: x.color, planned: !!x.planned, note: x.note ? String(x.note) : "", nonResident: Math.max(0, Number(x.nonResident) || 0) };
+      found[key(level, name)] = { id: name, name: name, level: level, capacity: cap, color: x.color, planned: !!x.planned, pointName: x.pointName ? String(x.pointName) : "", note: x.note ? String(x.note) : "", nonResident: Math.max(0, Number(x.nonResident) || 0) };
     });
     var missing = {};
     zones.forEach(function (z) {

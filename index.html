@@ -42,6 +42,14 @@
     #panelFoot .btn { width: 100%; padding: 11px; font-size: 16px; }
     p.intro { font-size: 14px; color: var(--muted); margin: 0 0 12px; line-height: 1.45; }
     .tabs { display: flex; margin-bottom: 14px; }
+    #optBar { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+    .optlbl { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .optrow { display: flex; flex: 1; }
+    .optrow button { flex: 1; padding: 5px 6px; border: 1px solid var(--line); background: #fff; cursor: pointer; font-size: 13px; color: var(--muted); }
+    .optrow button + button { border-left: 0; }
+    .optrow button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #welcomeOpts .optrow { margin: 0 0 14px; }
+    #welcomeOpts .optrow button { padding: 8px 6px; font-size: 14px; }
     .tabs button { flex: 1; padding: 9px 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; font-size: 15px; }
     .tabs button + button { border-left: 0; }
     .tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -283,7 +291,7 @@
   <div id="app">
     <main id="mapCol">
       <header id="mapHead">
-        <img id="logo" src="dcsd-logo.svg?v=82" alt="DeKalb County School District">
+        <img id="logo" src="dcsd-logo.svg?v=83" alt="DeKalb County School District">
         <h1 id="title" class="serif"></h1>
         <button id="menuBtn" class="btn" aria-expanded="false" aria-controls="hbtns"><span aria-hidden="true">&#9776;</span> Menu</button>
         <div class="hbtns" id="hbtns">
@@ -307,6 +315,7 @@
     </main>
     <aside id="panel">
       <div id="panelBody">
+        <div id="optBar" hidden><span class="optlbl">Boundary option</span><div class="optrow" role="group" aria-label="Boundary option"></div></div>
         <p class="intro" id="intro"></p>
         <div id="warnings"></div>
         <div class="tabs" role="tablist">
@@ -362,7 +371,11 @@
   <div id="welcome" class="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="box welcome" id="welcomeBox" tabindex="-1">
       <h2 id="welcomeTitle" class="serif">Welcome to the Community Boundary Builder</h2>
-      <p>This planner uses the <b>Option A elementary school boundaries</b> from Engagement Session 3. Each shaded area on the map is one Option A elementary zone. The elementary boundaries stay as they are. You decide which middle school and high school each zone attends.</p>
+      <p>This planner uses the <b><span class="optName">Option A</span> elementary school boundaries</b> from Engagement Session 3. Each shaded area on the map is one <span class="optName">Option A</span> elementary zone. The elementary boundaries stay as they are. You decide which middle school and high school each zone attends.</p>
+      <div id="welcomeOpts" hidden>
+        <p id="optBlurb"></p>
+        <div class="optrow" role="group" aria-label="Boundary option"></div>
+      </div>
       <h3>How to build a plan</h3>
       <ol>
         <li>Pick the <b>Middle school</b> or <b>High school</b> tab.</li>
@@ -386,16 +399,16 @@
   </div>
 
   <!-- ?v= changes with each release so browsers don't keep an old copy -->
-  <script src="config.js?v=82"></script>
-  <script src="planner-core.js?v=82"></script>
+  <script src="config.js?v=83"></script>
+  <script src="planner-core.js?v=83"></script>
   <div id="uc" hidden>
-    <img src="dcsd-logo.svg?v=82" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=83" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">Under construction</p>
     <p>This planner isn't open yet. Please check back soon.</p>
   </div>
   <div id="moved" hidden>
-    <img src="dcsd-logo.svg?v=82" alt="DeKalb County School District">
+    <img src="dcsd-logo.svg?v=83" alt="DeKalb County School District">
     <h1>Community Boundary Builder</h1>
     <p class="uc-tag">You've reached the test version</p>
     <p>This address was only for testing, and it may have been shared during a meeting.<br>Please use the planner at its new address.</p>
@@ -403,6 +416,17 @@
     <p class="moved-url" id="movedUrl"></p>
   </div>
   <script>
+    // Boundary options (config options): ?option=B picks one, otherwise the first opens.
+    // An option's settings replace the main ones; its addSchools join the school list.
+    (function () {
+      var C = window.PLANNER_CONFIG, opts = C.options || [];
+      if (!opts.length) return;
+      var want = String(new URLSearchParams(location.search).get("option") || "").trim().toUpperCase();
+      var o = opts.filter(function (x) { return String(x.id).toUpperCase() === want; })[0] || opts[0];
+      Object.keys(o).forEach(function (k) { if (["id", "label", "blurb", "addSchools"].indexOf(k) < 0) C[k] = o[k]; });
+      if (o.addSchools) C.schools = (C.schools || []).concat(o.addSchools);
+      C.option = o;
+    })();
     // Under Construction notice for everyone but the private test link (?zones=)
     window.PLANNER_OFF = !!(window.PLANNER_CONFIG.underConstruction && !new URLSearchParams(location.search).get("zones"));
     if (window.PLANNER_OFF) { document.getElementById("app").style.display = "none"; document.getElementById("uc").hidden = false; }
@@ -599,7 +623,7 @@
     function planLink() {
       if (planSchools("MS").length > 35 || planSchools("HS").length > 35) return "";
       var base = String(C.planLinkUrl || "").trim().split(/[?#]/)[0] || location.origin + location.pathname;
-      return base + "?plan=" + planCode();
+      return base + "?" + (C.option ? "option=" + encodeURIComponent(C.option.id) + "&" : "") + "plan=" + planCode();
     }
     function applyPlanCode(code) {
       var parts = String(code).split("-"), zs = state.zones.slice().sort(byName);
@@ -679,6 +703,13 @@
         .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
     }
     function matchPoint(school, names) {
+      // A school that exists only in a boundary option uses the name its building has today
+      if (school.pointName) {
+        var pn = normName(school.pointName), pt = pn.split(" ");
+        return names.filter(function (n) { return n.norm === pn; })[0] ||
+          names.filter(function (n) { var w = n.norm.split(" "); return pt.every(function (t) { return w.indexOf(t) >= 0; }); })
+            .sort(function (a, b) { return a.norm.length - b.norm.length; })[0] || null;
+      }
       var want = normName(school.name), lv = school.level.toLowerCase();
       var toks = want.split(" ").filter(function (t) { return t !== lv; });
       var exact = names.filter(function (n) { return n.norm === want; });
@@ -1415,6 +1446,7 @@
       var planId = P.makePlanId();
       var attrs = {
         plan_id: planId,
+        option: C.option ? String(C.option.id) : "",
         submitted_at: Date.now(),
         submitter_name: $("nameIn").value.trim().slice(0, 100),
         submitter_email: $("emailIn").value.trim().slice(0, 150),
@@ -1576,6 +1608,34 @@
       if (show) $("welcomeBox").focus(); else $("aboutBtn").focus();
     }
     $("welcomeOk").onclick = function () { showWelcome(false); };
+    // Boundary option buttons, in the side panel and on the welcome screen. Switching
+    // reloads the page with ?option=, which starts a new plan on that option's zones.
+    (function () {
+      var opts = C.options || [];
+      if (opts.length < 2 || !C.option) return;
+      Array.prototype.forEach.call(document.querySelectorAll(".optName"), function (el) { el.textContent = C.option.label || "Option " + C.option.id; });
+      $("optBlurb").textContent = C.option.blurb || "";
+      $("optBar").hidden = false; $("welcomeOpts").hidden = false;
+      Array.prototype.forEach.call(document.querySelectorAll(".optrow"), function (row) {
+        opts.forEach(function (o) {
+          var b = document.createElement("button");
+          b.type = "button"; b.textContent = o.label || "Option " + o.id;
+          b.setAttribute("aria-pressed", o === C.option ? "true" : "false");
+          b.onclick = function () {
+            if (o === C.option) return;
+            var go = function () {
+              var q = new URLSearchParams(location.search);
+              q.delete("plan"); q.set("option", o.id);
+              location.search = q.toString();
+            };
+            var started = state.history.length || PLAN_PARAM;
+            if (!started || state.submitted) return go();
+            ask("Switch to " + (o.label || "Option " + o.id) + "? It has different elementary zones, so your plan so far will be cleared.", "Switch").then(function (ok) { if (ok) go(); });
+          };
+          row.appendChild(b);
+        });
+      });
+    })();
     $("aboutBtn").onclick = function () { closeMenu(); showWelcome(true); };
     $("welcome").addEventListener("keydown", function (e) { if (e.key === "Escape") showWelcome(false); });
     $("welcome").addEventListener("click", function (e) { if (e.target === $("welcome")) showWelcome(false); });
